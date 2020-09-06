@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  hse-remind:
+    build:
+      context: .
+      dockerfile: ./hse-remind/deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - BOT_TOKEN

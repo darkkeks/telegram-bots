@@ -1,0 +1,20 @@
+---
+# Default profile is dev
+spring.profiles.active: dev
+
+telegram:
+  token: ${BOT_TOKEN}
+
+ruz:
+  base_url: 'https://ruz.hse.ru/api/'
+
+notify:
+  chat_id: -1001288233266
+  group_id: 11882
+
+---
+# Override some properties in dev profile
+spring.profiles: dev
+
+notify:
+  chat_id: -1001477647138
