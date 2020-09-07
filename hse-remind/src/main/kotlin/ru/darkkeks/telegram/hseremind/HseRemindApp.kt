@@ -9,7 +9,6 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.PropertySource
 import org.springframework.stereotype.Component
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -75,7 +74,10 @@ class NotifyService(
 
         logger.info("Getting schedule for date {}", formattedDate)
 
-        val request = ruzApi.schedule("group", groupId, today.format(dateFormatter), today.format(dateFormatter))
+        val request = ruzApi.schedule("group", groupId,
+                start = today.format(dateFormatter),
+                finish = today.format(dateFormatter))
+
         val schedule = try {
             request.execute()
         } catch (e: Exception) {
@@ -87,7 +89,7 @@ class NotifyService(
             val items = schedule.body()
 
             if (items == null) {
-                logger.warn("Schedule is null ?!?")
+                logger.warn("Schedule is null")
                 return
             }
 
@@ -102,8 +104,6 @@ class NotifyService(
     fun notifyTelegram() {
         val currentTime = LocalDateTime.now(moscowZoneId)
 
-        logger.info("Starting notify iteration. Schedule size is {}", lastSchedule.size)
-
         for (item in lastSchedule) {
             val lectureDate = LocalDate.parse(item.date, dateFormatter)
             val lectureTime = LocalTime.parse(item.beginLesson, timeFormatter)
@@ -114,48 +114,64 @@ class NotifyService(
             if (currentTime.isBefore(lectureStart) &&
                     Duration.between(currentTime, lectureStart) <= Duration.ofMinutes(10)) {
 
-                if (item.lessonOid !in alreadyNotified) {
-                    alreadyNotified.add(item.lessonOid)
+                if (shouldNotify(item)) {
+                    if (item.lessonOid !in alreadyNotified) {
+                        alreadyNotified.add(item.lessonOid)
 
-                    send(item, Duration.between(currentTime, lectureStart))
+                        send(item, Duration.between(currentTime, lectureStart))
+                    }
                 }
             }
         }
     }
 
+    private fun shouldNotify(item: ScheduleItem): Boolean {
+        return item.dayOfWeek != 3 || "Основания алгебры и геометрии" in item.discipline
+    }
+
     private fun send(item: ScheduleItem, startsIn: Duration) {
-        var text = """
-            <b>${item.discipline}</b>
-            Дата: ${item.date}
-            Время: <b>${item.beginLesson} &#8212; ${item.endLesson}</b>
-            Место: ${item.auditorium}
-        """.trimIndent()
-
-        if (item.url1 != null) {
-            text += "\nСсылка: ${item.url1}"
-        }
-
-        if (item.url2 != null) {
-            text += "\nСсылка #2: ${item.url2}"
-        }
-
-        text += """
-            
-            
-            Начало через <b>${startsIn.toMinutes()} мин.</b>!
-        """.trimIndent()
+        val text = formatMessage(item, startsIn)
 
         logger.info("Sending notification:\n{}", text)
 
-        try {
-            telegramApi.sendMessage(
-                    chatId,
-                    text,
-                    parseMode = ParseMode.HTML,
-                    disableWebPagePreview = true
-            ).executeChecked()
-        } catch (e: TelegramClientException) {
-            logger.error("Failed to send notification", e)
+        telegramApi
+                .sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
+                .executeChecked()
+    }
+
+    private fun formatMessage(item: ScheduleItem, startsIn: Duration): String {
+        var additionalText = ""
+
+        if (item.lecturer != null) {
+            additionalText += "Лектор: ${item.lecturer}\n"
+        }
+
+        additionalText += formatUrl(item.url1, item.url1_description, "Ссылка")
+        additionalText += formatUrl(item.url2, item.url2_description, "Ссылка #2")
+
+        val minutes = startsIn.toMinutes() + 1
+
+        return """
+            <b>${item.discipline}</b>
+            ${item.kindOfWork}
+            Дата: ${item.date}
+            Время: <b>${item.beginLesson} &#8212; ${item.endLesson}</b>
+            Место: ${item.auditorium}
+            
+        """.trimIndent() + additionalText + """
+            
+            Начало через <b>$minutes мин.</b>
+        """.trimIndent()
+    }
+
+    private fun formatUrl(url: String?, description: String?, default: String): String {
+        url ?: return ""
+
+        val name = description ?: default
+        return if (name.endsWith("\n")) {
+            "$name$url\n"
+        } else {
+            "$name: $url\n"
         }
     }
 }
@@ -167,8 +183,8 @@ fun main(args: Array<String>) {
     val scheduler: ScheduledExecutorService = context.getBean()
     val service: NotifyService = context.getBean()
 
-    scheduler.scheduleAtFixedRate(service::checkSchedule, 0, 1, TimeUnit.HOURS)
-    scheduler.scheduleAtFixedRate(service::notifyTelegram, 15, 60, TimeUnit.SECONDS)
+    scheduler.scheduleAtFixedRate(service::checkSchedule, 0, 60, TimeUnit.MINUTES)
+    scheduler.scheduleAtFixedRate(service::notifyTelegram, 10, 60, TimeUnit.SECONDS)
 
     Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
         logger.error("Uncaught exception on thread {}", thread, throwable)

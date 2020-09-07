@@ -88,7 +88,7 @@ class ScheduleItem(
         //  "1861272403",
         val kindOfWorkUid: String,
         //  "ст.преп. Смирнов Иван Федорович",
-        val lecturer: String,
+        val lecturer: String?,
         //  null,
         val lecturerCustomUID: Int?,
         //  "ifsmirnov@hse.ru",
