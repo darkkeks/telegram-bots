@@ -126,7 +126,7 @@ class NotifyService(
     }
 
     private fun shouldNotify(item: ScheduleItem): Boolean {
-        return item.dayOfWeek != 3 || "Основания алгебры и геометрии" in item.discipline
+        return item.dayOfWeek != 3
     }
 
     private fun send(item: ScheduleItem, startsIn: Duration) {
