@@ -2,11 +2,22 @@
 # Default profile is dev
 spring.profiles.active: dev
 
+spring:
+  data:
+    mongodb:
+      host: mongo
+
 telegram:
   token: ${BOT_TOKEN}
 
 ruz:
   base_url: 'https://ruz.hse.ru/api/'
+
 ---
 # Override some properties in dev profile
 spring.profiles: dev
+
+spring:
+  data:
+    mongodb:
+      host: localhost

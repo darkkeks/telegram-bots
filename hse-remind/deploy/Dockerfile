@@ -17,4 +17,4 @@ RUN mkdir /app
 # expecting a single jar
 COPY --from=build /build/hse-remind/build/libs/*.jar /app/app.jar
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Xmx512M", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]
