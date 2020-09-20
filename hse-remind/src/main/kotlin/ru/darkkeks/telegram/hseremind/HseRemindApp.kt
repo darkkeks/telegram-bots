@@ -12,10 +12,12 @@ import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import ru.darkkeks.telegram.core.TelegramBotsConfiguration
-import ru.darkkeks.telegram.core.api.*
-import ru.darkkeks.telegram.core.createLogger
-import ru.darkkeks.telegram.core.objectMapper
+import ru.darkkeks.telegram.core.*
+import ru.darkkeks.telegram.core.api.ParseMode
+import ru.darkkeks.telegram.core.api.TelegramApi
+import ru.darkkeks.telegram.core.api.TelegramClientException
+import ru.darkkeks.telegram.core.api.executeChecked
+import java.io.File
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
@@ -51,92 +53,138 @@ class HseRemindConfiguration {
     }
 }
 
+object RuzUtils {
+    val moscowZoneId: ZoneId = ZoneId.of("Europe/Moscow")
+    val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+    val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+}
+
 @Component
-class NotifyService(
-        val telegramApi: TelegramApi,
-        val ruzApi: RuzApi,
-        @Value("\${notify.group_id}") val groupId: Int,
-        @Value("\${notify.chat_id}") val chatId: Long
-) {
+class SourceFetchService(val ruzApi: RuzApi) {
+    private val logger = createLogger<SourceFetchService>()
 
-    private val logger = createLogger<NotifyService>()
+    private val sources: MutableMap<Source, Int> = mutableMapOf()
+    private val sourceToId: MutableMap<Source, Int> = mutableMapOf()
 
-    private final val moscowZoneId: ZoneId = ZoneId.of("Europe/Moscow")
-    private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
-    private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    private val sourceResults: MutableMap<Source, List<ScheduleItem>> = mutableMapOf()
 
-    private val alreadyNotified: MutableSet<Int> = mutableSetOf()
-    private var lastSchedule: List<ScheduleItem> = listOf()
-
-    fun checkSchedule() {
-        val today = ZonedDateTime.now(moscowZoneId)
-        val formattedDate = today.format(dateFormatter)
-
-        logger.info("Getting schedule for date {}", formattedDate)
-
-        val request = ruzApi.schedule("group", groupId,
-                start = today.format(dateFormatter),
-                finish = today.format(dateFormatter))
-
-        val schedule = try {
-            request.execute()
-        } catch (e: Exception) {
-            logger.error("Failed to get schedule", e)
-            return
-        }
-
-        if (schedule.isSuccessful) {
-            val items = schedule.body()
-
-            if (items == null) {
-                logger.warn("Schedule is null")
-                return
-            }
-
-            logger.info("Successfully fetched {} schedule items for date {}", items.size, formattedDate)
-
-            lastSchedule = items
-        } else {
-            logger.error("Failed to get schedule: ", schedule.errorBody())
+    fun addSource(source: Source) {
+        logger.info("Adding source {}", source)
+        synchronized(sources) {
+            val count = sources[source] ?: 0
+            sources[source] = count + 1
         }
     }
 
-    fun notifyTelegram() {
-        val currentTime = LocalDateTime.now(moscowZoneId)
+    fun removeSource(source: Source) {
+        logger.info("Removing source {}", source)
+        synchronized(sources) {
+            val count = sources[source] ?: 0
+            if (count > 1) {
+                sources[source] = count - 1
+            } else {
+                sources.remove(source)
+                sourceResults.remove(source)
+            }
+        }
+    }
 
-        for (item in lastSchedule) {
-            val lectureDate = LocalDate.parse(item.date, dateFormatter)
-            val lectureTime = LocalTime.parse(item.beginLesson, timeFormatter)
+    fun update() {
+        sources.keys.forEach { source ->
+            var id = sourceToId[source]
+            if (id == null) {
+                id = fetchSourceId(source)
+                if (id != null) {
+                    sourceToId[source] = id
+                }
+            }
 
-            val lectureStart = LocalDateTime.of(lectureDate, lectureTime)
-
-            // Lecture starts 10 minutes (or less) from now
-            if (currentTime.isBefore(lectureStart) &&
-                    Duration.between(currentTime, lectureStart) <= Duration.ofMinutes(10)) {
-
-                if (shouldNotify(item)) {
-                    if (item.lessonOid !in alreadyNotified) {
-                        alreadyNotified.add(item.lessonOid)
-
-                        send(item, Duration.between(currentTime, lectureStart))
-                    }
+            if (id != null) {
+                val result = fetchSourceInfo(source, id)
+                if (result != null) {
+                    sourceResults[source] = result
                 }
             }
         }
     }
 
-    private fun shouldNotify(item: ScheduleItem): Boolean {
-        return item.dayOfWeek != 3
+    private fun fetchSourceInfo(source: Source, id: Int): List<ScheduleItem>? {
+        val (type, _) = sourceToTypeAndTerm(source) ?: return null
+
+        val today = ZonedDateTime.now(RuzUtils.moscowZoneId)
+        val formattedDate = today.format(RuzUtils.dateFormatter)
+
+        logger.info("Fetching schedule for source {} with id {} and date {}", source, id, formattedDate)
+
+        val request = ruzApi.schedule(type, id,
+                start = today.format(RuzUtils.dateFormatter),
+                finish = today.format(RuzUtils.dateFormatter))
+
+        val response = try {
+            request.execute()
+        } catch (e: Exception) {
+            logger.warn("Failed to fetch source schedule", e)
+            return null
+        }
+
+        return if (response.isSuccessful) {
+            val result = response.body()
+            logger.info("Successfully fetched {} schedule items for date {}", result?.size ?: 0, formattedDate)
+            result
+        } else {
+            logger.error("Failed to get schedule: ", response.errorBody())
+            null
+        }
     }
 
-    private fun send(item: ScheduleItem, startsIn: Duration) {
+    private fun fetchSourceId(source: Source): Int? {
+        val (type, term) = sourceToTypeAndTerm(source) ?: return null
+
+        val response = try {
+            ruzApi.search(term, type).execute()
+        } catch (e: Exception) {
+            logger.warn("Failed to fetch source id", e)
+            return null
+        }
+
+        return if (response.isSuccessful) {
+            response.body()?.firstOrNull()?.id
+        } else {
+            logger.warn("Failed to fetch source id", response.errorBody())
+            null
+        }
+    }
+
+    private fun sourceToTypeAndTerm(source: Source): Pair<String, String>? {
+        return when (source) {
+            is StudentSource -> "student" to source.student
+            is GroupSource -> "group" to source.group
+            else -> return null
+        }
+    }
+
+    fun getSourceInfo(source: Source): List<ScheduleItem> {
+        return sourceResults[source] ?: listOf()
+    }
+}
+
+@Component
+class NotificationSendService(val telegramApi: TelegramApi) {
+
+    private val logger = createLogger<NotificationSendService>()
+
+    fun notify(chatId: Long, item: ScheduleItem, startsIn: Duration) {
         val text = formatMessage(item, startsIn)
 
         logger.info("Sending notification:\n{}", text)
 
-        telegramApi
-                .sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
-                .executeChecked()
+        try {
+            telegramApi
+                    .sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
+                    .executeChecked()
+        } catch (e: TelegramClientException) {
+            logger.warn("Failed to send notification to chat {}", chatId, e)
+        }
     }
 
     private fun formatMessage(item: ScheduleItem, startsIn: Duration): String {
@@ -176,17 +224,140 @@ class NotifyService(
     }
 }
 
+@Component
+class UserRepository {
+
+    private var users: MutableMap<Long, User> = mutableMapOf()
+
+    fun getAll(): Collection<User> {
+        return users.values
+    }
+
+    fun get(id: Long): User? {
+        return users[id]
+    }
+
+    fun save(user: User) {
+        users[user.id] = user
+    }
+}
+
+@Component
+class ItemFilterService {
+    fun shouldNotify(item: ScheduleItem, filter: Filter): Boolean {
+        return when (filter) {
+            is LectureNameFilter -> {
+                filter.lectureName.toRegex(RegexOption.IGNORE_CASE).matches(item.discipline)
+            }
+            is WeekDaysFilter -> {
+                val now = LocalDateTime.now(RuzUtils.moscowZoneId)
+                now.dayOfWeek.value in filter.weekDays
+            }
+            is LecturerNameFilter -> {
+                item.lecturer ?: return false
+                filter.lecturerName.toRegex(RegexOption.IGNORE_CASE).matches(item.lecturer)
+            }
+            is LectureTypeFilter -> {
+                filter.lectureType.trim() == item.kindOfWork.trim()
+            }
+            is AllOfFilter -> {
+                filter.allOf.all { shouldNotify(item, it) }
+            }
+            is AnyOfFilter -> {
+                filter.anyOf.any { shouldNotify(item, it) }
+            }
+            is NoneOfFilter -> {
+                filter.noneOf.none { shouldNotify(item, it) }
+            }
+            else -> false
+        }
+    }
+}
+
+@Component
+class NotifyService(
+        val userRepository: UserRepository,
+        val notificationSendService: NotificationSendService,
+        val sourceFetchService: SourceFetchService,
+        val itemFilterService: ItemFilterService
+) {
+
+    private val logger = createLogger<NotifyService>()
+
+    private val alreadyNotified: MutableSet<Int> = mutableSetOf()
+
+    fun update() = try {
+        logger.info("Starting notify iteration")
+        userRepository.getAll().forEach { user ->
+            user.spec.chats.forEach { chat ->
+                chat.rules.forEach { rule ->
+                    val source = rule.source
+                    val items = sourceFetchService.getSourceInfo(source)
+                    items.forEach { item ->
+                        processItem(user, chat, rule, item)
+                    }
+                }
+            }
+        }
+        logger.info("Done")
+    } catch (e: Exception) {
+        logger.warn("Exception during notify iteration", e)
+    }
+
+    fun processItem(
+            user: User,
+            chat: ChatSpec,
+            rule: RuleSpec,
+            item: ScheduleItem
+    ) {
+        if (rule.filter == null || itemFilterService.shouldNotify(item, rule.filter)) {
+            val currentTime = LocalDateTime.now(RuzUtils.moscowZoneId)
+
+            val lectureDate = LocalDate.parse(item.date, RuzUtils.dateFormatter)
+            val lectureTime = LocalTime.parse(item.beginLesson, RuzUtils.timeFormatter)
+
+            val lectureStart = LocalDateTime.of(lectureDate, lectureTime)
+
+            // Lecture starts 10 minutes (or less) from now
+            if (currentTime.isBefore(lectureStart) &&
+                    Duration.between(currentTime, lectureStart) <= Duration.ofMinutes(10)) {
+
+                if (item.lessonOid !in alreadyNotified) {
+                    alreadyNotified.add(item.lessonOid)
+
+                    val chatId = targetToChatId(user, chat.target)
+                    if (chatId != null) {
+                        notificationSendService.notify(chatId, item, Duration.between(currentTime, lectureStart))
+                    }
+                }
+            }
+        }
+    }
+
+    fun targetToChatId(user: User, target: Target): Long? {
+        return when (target) {
+            is GroupTarget -> target.group
+            is ChannelTarget -> target.channel
+            is MeTarget -> user.id
+            else -> null
+        }
+    }
+}
+
 fun main(args: Array<String>) {
     val logger = createLogger<HseRemindApp>()
-    val context = runApplication<HseRemindApp>(*args)
-
-    val scheduler: ScheduledExecutorService = context.getBean()
-    val service: NotifyService = context.getBean()
-
-    scheduler.scheduleAtFixedRate(service::checkSchedule, 0, 60, TimeUnit.MINUTES)
-    scheduler.scheduleAtFixedRate(service::notifyTelegram, 10, 60, TimeUnit.SECONDS)
 
     Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
         logger.error("Uncaught exception on thread {}", thread, throwable)
     }
+
+    val context = runApplication<HseRemindApp>(*args)
+
+    val scheduler: ScheduledExecutorService = context.getBean()
+
+    val notifyService: NotifyService = context.getBean()
+    val sourceFetchService: SourceFetchService = context.getBean()
+
+    scheduler.scheduleAtFixedRate(sourceFetchService::update, 0, 60, TimeUnit.MINUTES)
+    scheduler.scheduleAtFixedRate(notifyService::update, 10, 60, TimeUnit.SECONDS)
 }

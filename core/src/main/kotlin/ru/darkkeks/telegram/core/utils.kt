@@ -38,6 +38,10 @@ val objectMapper: ObjectMapper = ObjectMapper()
 
 val prettyWriter: ObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()
 
+inline fun <reified T> fromJson(data: String): T {
+    return objectMapper.readValue(data, T::class.java)
+}
+
 fun <T> toJson(value: T): String {
     return objectMapper.writeValueAsString(value)
 }

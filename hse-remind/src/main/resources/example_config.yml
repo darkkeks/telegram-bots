@@ -1,0 +1,34 @@
+chats:
+  - name: '193 Общий'
+    target:
+      channel: -1001477647138
+    rules:
+      - source:
+          group: 'БПМИ193'
+        filter:
+          none_of:
+            - week_days: [3]
+            - lecture_name: '.*Англ.*'
+
+  - name: 'Личка'
+    target:
+      me: true
+    rules:
+      - source:
+          group: 'БПМИ193'
+        filter:
+          none_of:
+            - week_days: [3]
+            - lecture_name: '.*Англ.*'
+            - all_of:
+                - lecture_type: 'Практическое занятие'
+                - lecturer_name: '.*Смирнов.*'
+      - source:
+          group: 'БПМИ195'
+        filter:
+          all_of:
+            - lecture_type: 'Семинар'
+            - any_of:
+                - lecture_name: '.*Математический анализ.*'
+                - lecture_name: '.*Теория вероятностей.*'
+version: 1

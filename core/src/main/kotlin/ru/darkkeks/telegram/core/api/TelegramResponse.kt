@@ -1,7 +1,7 @@
 package ru.darkkeks.telegram.core.api
 
 class TelegramResponse<T>(
-        private val ok: Boolean,
+        val ok: Boolean,
         private val result: T?,
         private val description: String?,
         private val errorCode: Int?

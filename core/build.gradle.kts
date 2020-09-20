@@ -11,6 +11,7 @@ dependencies {
 
     api("org.springframework.boot:spring-boot-starter:2.3.2.RELEASE")
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1")
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.1")
 
     api("com.squareup.retrofit2:retrofit:2.9.0")
     api("com.squareup.retrofit2:converter-jackson:2.9.0")
