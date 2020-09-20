@@ -17,7 +17,14 @@ class NotifyService(
 
     private val logger = createLogger<NotifyService>()
 
-    private val alreadyNotified: MutableSet<Int> = mutableSetOf()
+    private val alreadyNotified: MutableSet<NotificationRecord> = mutableSetOf()
+
+    data class NotificationRecord(
+            val user: Long,
+            val chat: ChatSpec,
+            val rule: RuleSpec,
+            val lectureId: Int
+    )
 
     fun update() = try {
         logger.info("Starting notify iteration")
@@ -42,11 +49,13 @@ class NotifyService(
             rule: RuleSpec,
             item: ScheduleItem
     ) {
-        if (rule.filter == null || itemFilterService.shouldNotify(item, rule.filter)) {
-            val currentTime = LocalDateTime.now(RuzUtils.moscowZoneId)
+        val currentTime = LocalDateTime.now(RuzUtils.moscowZoneId)
 
-            val lectureDate = LocalDate.parse(item.date, RuzUtils.dateFormatter)
-            val lectureTime = LocalTime.parse(item.beginLesson, RuzUtils.timeFormatter)
+        val lectureDate = LocalDate.parse(item.date, RuzUtils.dateFormatter)
+        val lectureTime = LocalTime.parse(item.beginLesson, RuzUtils.timeFormatter)
+
+        if (rule.filter == null ||
+                itemFilterService.shouldNotify(item, rule.filter, LocalDateTime.of(lectureDate, lectureTime))) {
 
             val lectureStart = LocalDateTime.of(lectureDate, lectureTime)
 
@@ -54,8 +63,9 @@ class NotifyService(
             if (currentTime.isBefore(lectureStart) &&
                     Duration.between(currentTime, lectureStart) <= Duration.ofMinutes(10)) {
 
-                if (item.lessonOid !in alreadyNotified) {
-                    alreadyNotified.add(item.lessonOid)
+                val record = NotificationRecord(user.id, chat, rule, item.lessonOid)
+                if (record !in alreadyNotified) {
+                    alreadyNotified.add(record)
 
                     val chatId = targetToChatId(user, chat.target)
                     if (chatId != null) {

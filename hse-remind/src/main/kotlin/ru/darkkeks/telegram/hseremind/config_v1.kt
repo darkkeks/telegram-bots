@@ -15,19 +15,16 @@ data class UserSpec(
         val version: Int = 1
 )
 
-
 data class ChatSpec(
         val name: String,
         val target: Target,
         val rules: List<RuleSpec>
 )
 
-
 data class RuleSpec(
         val source: Source,
         val filter: Filter?
 )
-
 
 @JsonSubTypes(
         JsonSubTypes.Type(value = MeTarget::class, name = "me"),
@@ -36,10 +33,9 @@ data class RuleSpec(
 )
 abstract class Target
 
-class MeTarget(val me: Any) : Target()
-class ChannelTarget(val channel: Long) : Target()
-class GroupTarget(val group: Long) : Target()
-
+data class MeTarget(val me: Any) : Target()
+data class ChannelTarget(val channel: Long) : Target()
+data class GroupTarget(val group: Long) : Target()
 
 @JsonSubTypes(
         JsonSubTypes.Type(value = GroupSource::class, name = "group"),
@@ -47,9 +43,8 @@ class GroupTarget(val group: Long) : Target()
 )
 abstract class Source
 
-class GroupSource(val group: String) : Source()
-class StudentSource(val student: String) : Source()
-
+data class GroupSource(val group: String) : Source()
+data class StudentSource(val student: String) : Source()
 
 @JsonSubTypes(
         JsonSubTypes.Type(value = LectureNameFilter::class, name = "lecture_name"),
@@ -62,13 +57,13 @@ class StudentSource(val student: String) : Source()
 )
 abstract class Filter
 
-class LectureNameFilter(val lectureName: String) : Filter()
-class WeekDaysFilter(val weekDays: List<Int>) : Filter()
-class LecturerNameFilter(val lecturerName: String) : Filter()
-class LectureTypeFilter(val lectureType: String) : Filter()
-class AllOfFilter(val allOf: List<Filter>) : Filter()
-class AnyOfFilter(val anyOf: List<Filter>) : Filter()
-class NoneOfFilter(val noneOf: List<Filter>) : Filter()
+data class LectureNameFilter(val lectureName: String) : Filter()
+data class WeekDaysFilter(val weekDays: List<Int>) : Filter()
+data class LecturerNameFilter(val lecturerName: String) : Filter()
+data class LectureTypeFilter(val lectureType: String) : Filter()
+data class AllOfFilter(val allOf: List<Filter>) : Filter()
+data class AnyOfFilter(val anyOf: List<Filter>) : Filter()
+data class NoneOfFilter(val noneOf: List<Filter>) : Filter()
 
 
 val polymorphicModule: SimpleModule = SimpleModule()

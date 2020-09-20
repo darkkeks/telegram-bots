@@ -33,7 +33,9 @@ class HseRemindConfiguration {
         val interceptor = HttpLoggingInterceptor { message -> logger.info(message) }
 
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
-        return OkHttpClient.Builder().addInterceptor(interceptor).build()
+        return OkHttpClient.Builder()
+//                .addInterceptor(interceptor)
+                .build()
     }
 
     @Bean

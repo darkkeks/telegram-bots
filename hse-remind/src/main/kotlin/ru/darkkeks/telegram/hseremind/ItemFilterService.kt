@@ -5,13 +5,12 @@ import java.time.LocalDateTime
 
 @Component
 class ItemFilterService {
-    fun shouldNotify(item: ScheduleItem, filter: Filter): Boolean {
+    fun shouldNotify(item: ScheduleItem, filter: Filter, now: LocalDateTime): Boolean {
         return when (filter) {
             is LectureNameFilter -> {
                 filter.lectureName.toRegex(RegexOption.IGNORE_CASE).matches(item.discipline)
             }
             is WeekDaysFilter -> {
-                val now = LocalDateTime.now(RuzUtils.moscowZoneId)
                 now.dayOfWeek.value in filter.weekDays
             }
             is LecturerNameFilter -> {
@@ -22,13 +21,13 @@ class ItemFilterService {
                 filter.lectureType.trim() == item.kindOfWork.trim()
             }
             is AllOfFilter -> {
-                filter.allOf.all { shouldNotify(item, it) }
+                filter.allOf.all { shouldNotify(item, it, now) }
             }
             is AnyOfFilter -> {
-                filter.anyOf.any { shouldNotify(item, it) }
+                filter.anyOf.any { shouldNotify(item, it, now) }
             }
             is NoneOfFilter -> {
-                filter.noneOf.none { shouldNotify(item, it) }
+                filter.noneOf.none { shouldNotify(item, it, now) }
             }
             else -> false
         }
