@@ -1,2 +1,3 @@
 telegram:
     base_url: 'https://api.telegram.org/bot'
+    file_url: 'https://api.telegram.org/file/bot'

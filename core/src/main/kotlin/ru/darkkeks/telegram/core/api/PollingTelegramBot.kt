@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 
-class PollingTelegramBot(private val client: TelegramApi,
+class PollingTelegramBot(private val client: Telegram,
                          private val executor: ScheduledExecutorService,
                          private val handler: UpdateHandler,
                          private var offset: Int? = null) {

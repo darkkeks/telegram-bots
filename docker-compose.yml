@@ -9,3 +9,22 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - BOT_TOKEN
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    restart: always
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+
+volumes:
+  mongo-data:
