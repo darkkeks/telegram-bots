@@ -7,7 +7,7 @@ services:
       dockerfile: ./hse-remind/deploy/Dockerfile
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=production
+      - SPRING_PROFILES_ACTIVE
       - BOT_TOKEN
 
   mongo:
