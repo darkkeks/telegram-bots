@@ -71,7 +71,7 @@ class HseRemindUpdateHandler(
     private fun import(message: Message) {
         telegram.sendMessage(message.chat.id, """
             Скинь конфиг файликом. Пример конфига <a href="$exampleConfig">тут</a>.
-        """.trimIndent(), parseMode = ParseMode.HTML).executeChecked()
+        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true).executeChecked()
     }
 
     private fun importDocument(chatId: Long, document: Document) {
