@@ -1,28 +1,30 @@
-package ru.darkkeks.telegram.hseremind
+package ru.darkkeks.telegram.hseremind.ruz
 
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.createLogger
+import ru.darkkeks.telegram.hseremind.*
+import ru.darkkeks.telegram.hseremind.Target
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Component
-class NotifyService(
+class RuzNotifyService(
         val userRepository: UserRepository,
-        val notificationSendService: NotificationSendService,
-        val sourceFetchService: SourceFetchService,
+        val ruzNotificationSendService: RuzNotificationSendService,
+        val ruzSourceFetchService: RuzSourceFetchService,
         val itemFilterService: ItemFilterService
 ) {
 
-    private val logger = createLogger<NotifyService>()
+    private val logger = createLogger<RuzNotifyService>()
 
     private val alreadyNotified: MutableSet<NotificationRecord> = mutableSetOf()
 
     data class NotificationRecord(
             val user: Long,
             val chat: ChatSpec,
-            val rule: RuleSpec,
+            val rule: RuzRuleSpec,
             val lectureId: Int
     )
 
@@ -30,9 +32,9 @@ class NotifyService(
         logger.info("Starting notify iteration")
         userRepository.findAll().forEach { user ->
             user.spec.chats.forEach { chat ->
-                chat.rules.forEach { rule ->
-                    val items = sourceFetchService.getSourceInfo(rule.source)
-                    items.forEach { item ->
+                (chat.lectureRules ?: chat.rules)?.forEach { rule ->
+                    val items = ruzSourceFetchService.getSourceInfo(rule.source)
+                    items?.forEach { item ->
                         processItem(user, chat, rule, item)
                     }
                 }
@@ -46,7 +48,7 @@ class NotifyService(
     fun processItem(
             user: User,
             chat: ChatSpec,
-            rule: RuleSpec,
+            rule: RuzRuleSpec,
             item: ScheduleItem
     ) {
         val currentTime = LocalDateTime.now(RuzUtils.moscowZoneId)
@@ -69,19 +71,10 @@ class NotifyService(
 
                     val chatId = targetToChatId(user, chat.target)
                     if (chatId != null) {
-                        notificationSendService.notify(chatId, item, Duration.between(currentTime, lectureStart))
+                        ruzNotificationSendService.notify(chatId, item, Duration.between(currentTime, lectureStart))
                     }
                 }
             }
-        }
-    }
-
-    fun targetToChatId(user: User, target: Target): Long? {
-        return when (target) {
-            is GroupTarget -> target.group
-            is ChannelTarget -> target.channel
-            is MeTarget -> user.id
-            else -> null
         }
     }
 }

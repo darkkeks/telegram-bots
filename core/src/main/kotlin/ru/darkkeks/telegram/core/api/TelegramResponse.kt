@@ -4,7 +4,8 @@ class TelegramResponse<T>(
         val ok: Boolean,
         private val result: T?,
         private val description: String?,
-        private val errorCode: Int?
+        private val errorCode: Int?,
+        private val parameters: ResponseParameters?
 ) {
     fun checked(): T {
         checkError()

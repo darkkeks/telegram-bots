@@ -11,7 +11,7 @@ chats:
       channel: -1001477647138
 
     # Список правил. Правило -- это комбинация "откуда брать лекции" и "чем их фильтровать"
-    rules:
+    lecture_rules:
       - # source -- откуда из расписания брать лекции
         # Здесь, берутся лекции группы БПМИ193
         # Кроме group, можно указать student: "Балюк"
@@ -29,7 +29,7 @@ chats:
   - name: "Личка"
     target:
       me: true
-    rules:
+    lecture_rules:
       - source:
           group: "БПМИ193"
 
@@ -62,4 +62,24 @@ chats:
                 - lecture_name: ".*Математический анализ.*"
                 - lecture_name: ".*Теория вероятностей.*"
 
+  - name: "Лекции"
+    target:
+      channel: -1001459653369
+
+    # Брать видео из плейлистов ютаба
+    youtube_rules:
+      - source:
+          # хештег под видео
+          name: 'ДМ2'
+          # id плейилста (можно скопировать из ссылки на плейлист)
+          playlist: 'PLEwK9wdS5g0rlJ8sZo5x0rJYRdl4XFeZt'
+      - source:
+          name: 'ТВиМС'
+          playlist: 'PLEwK9wdS5g0rSOfuEG8wmghP682aEPPud'
+      - source:
+          name: 'МА2'
+          playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
+      - source:
+          name: 'АИСД'
+          playlist: 'PLEwK9wdS5g0o-8ANvtyqqPXI-wD7Ddl7G'
 version: 1

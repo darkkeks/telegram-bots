@@ -1,33 +1,46 @@
 package ru.darkkeks.telegram.hseremind
 
 import org.springframework.stereotype.Component
+import ru.darkkeks.telegram.hseremind.ruz.*
+import ru.darkkeks.telegram.hseremind.youtube.TitleFilter
+import ru.darkkeks.telegram.hseremind.youtube.Video
+import ru.darkkeks.telegram.hseremind.youtube.YoutubeFilter
 import java.time.LocalDateTime
 
 @Component
 class ItemFilterService {
-    fun shouldNotify(item: ScheduleItem, filter: Filter, now: LocalDateTime): Boolean {
-        return when (filter) {
+    fun shouldNotify(item: ScheduleItem, ruzFilter: RuzFilter, now: LocalDateTime): Boolean {
+        return when (ruzFilter) {
             is LectureNameFilter -> {
-                filter.lectureName.toRegex(RegexOption.IGNORE_CASE).matches(item.discipline)
+                ruzFilter.lectureName.toRegex(RegexOption.IGNORE_CASE).matches(item.discipline)
             }
             is WeekDaysFilter -> {
-                now.dayOfWeek.value in filter.weekDays
+                now.dayOfWeek.value in ruzFilter.weekDays
             }
             is LecturerNameFilter -> {
                 item.lecturer ?: return false
-                filter.lecturerName.toRegex(RegexOption.IGNORE_CASE).matches(item.lecturer)
+                ruzFilter.lecturerName.toRegex(RegexOption.IGNORE_CASE).matches(item.lecturer)
             }
             is LectureTypeFilter -> {
-                filter.lectureType.trim() == item.kindOfWork.trim()
+                ruzFilter.lectureType.trim() == item.kindOfWork.trim()
             }
-            is AllOfFilter -> {
-                filter.allOf.all { shouldNotify(item, it, now) }
+            is AllOfRuzFilter -> {
+                ruzFilter.allOf.all { shouldNotify(item, it, now) }
             }
-            is AnyOfFilter -> {
-                filter.anyOf.any { shouldNotify(item, it, now) }
+            is AnyOfRuzFilter -> {
+                ruzFilter.anyOf.any { shouldNotify(item, it, now) }
             }
-            is NoneOfFilter -> {
-                filter.noneOf.none { shouldNotify(item, it, now) }
+            is NoneOfRuzFilter -> {
+                ruzFilter.noneOf.none { shouldNotify(item, it, now) }
+            }
+            else -> false
+        }
+    }
+
+    fun shouldNotify(item: Video, youtubeFilter: YoutubeFilter): Boolean {
+        return when (youtubeFilter) {
+            is TitleFilter -> {
+                youtubeFilter.title.toRegex(RegexOption.IGNORE_CASE).matches(item.title)
             }
             else -> false
         }

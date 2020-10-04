@@ -3,7 +3,6 @@ package ru.darkkeks.telegram.hseremind
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.*
 import ru.darkkeks.telegram.core.createLogger

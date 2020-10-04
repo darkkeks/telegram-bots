@@ -1,4 +1,4 @@
-package ru.darkkeks.telegram.hseremind
+package ru.darkkeks.telegram.hseremind.ruz
 
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.ParseMode
@@ -9,9 +9,9 @@ import ru.darkkeks.telegram.core.createLogger
 import java.time.Duration
 
 @Component
-class NotificationSendService(val telegram: Telegram) {
+class RuzNotificationSendService(val telegram: Telegram) {
 
-    private val logger = createLogger<NotificationSendService>()
+    private val logger = createLogger<RuzNotificationSendService>()
 
     fun notify(chatId: Long, item: ScheduleItem, startsIn: Duration) {
         val text = formatMessage(item, startsIn)

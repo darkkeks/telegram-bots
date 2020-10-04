@@ -1,4 +1,4 @@
-package ru.darkkeks.telegram.hseremind
+package ru.darkkeks.telegram.hseremind.ruz
 
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

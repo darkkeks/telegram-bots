@@ -10,12 +10,9 @@ telegram:
 ruz:
   base_url: 'https://ruz.hse.ru/api/'
 
-
----
-spring.profiles: staging
-
+youtube:
+  key: ${YOUTUBE_KEY}
 
 ---
 spring.profiles: dev
 
-spring.data.mongodb.host: localhost

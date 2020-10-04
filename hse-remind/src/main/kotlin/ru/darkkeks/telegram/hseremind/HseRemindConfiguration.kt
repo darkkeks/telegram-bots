@@ -2,6 +2,10 @@ package ru.darkkeks.telegram.hseremind
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.youtube.YouTube
+import com.google.api.services.youtube.YouTubeRequestInitializer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +20,7 @@ import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.TelegramFiles
 import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.core.objectMapper
+import ru.darkkeks.telegram.hseremind.ruz.RuzApi
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 
@@ -71,6 +76,16 @@ class HseRemindConfiguration {
                 .client(okHttpClient)
                 .build()
                 .create(RuzApi::class.java)
+    }
+
+    @Bean
+    fun youtube(@Value("\${youtube.key}") key: String): YouTube {
+        val jacksonFactory = JacksonFactory.getDefaultInstance()
+        val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+        return YouTube.Builder(httpTransport, jacksonFactory, null)
+                .setYouTubeRequestInitializer(YouTubeRequestInitializer(key))
+                .setApplicationName(this::class.simpleName)
+                .build()
     }
 
     @Bean

@@ -3,9 +3,10 @@ package ru.darkkeks.telegram.hseremind
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import ru.darkkeks.telegram.core.*
 import ru.darkkeks.telegram.core.api.PollingTelegramBot
-import ru.darkkeks.telegram.core.api.Telegram
+import ru.darkkeks.telegram.core.createLogger
+import ru.darkkeks.telegram.hseremind.ruz.RuzNotifyService
+import ru.darkkeks.telegram.hseremind.youtube.YoutubeNotifyService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -20,18 +21,22 @@ fun main(args: Array<String>) {
     }
 
     val context = runApplication<HseRemindApp>(*args)
-
     val scheduler: ScheduledExecutorService = context.getBean()
 
-    val notifyService: NotifyService = context.getBean()
     val userConfigService: UserConfigService = context.getBean()
-    val sourceFetchService: SourceFetchService = context.getBean()
-    val pollingTelegramBot: PollingTelegramBot = context.getBean()
-
     userConfigService.load()
 
-    scheduler.scheduleAtFixedRate(sourceFetchService::update, 0, 60, TimeUnit.MINUTES)
-    scheduler.scheduleAtFixedRate(notifyService::update, 10, 60, TimeUnit.SECONDS)
+    val sourceFetchers = context.getBeansOfType(SourceFetchService::class.java)
+    sourceFetchers.values.forEach {
+        scheduler.scheduleAtFixedRate(it::update, 0, 60, TimeUnit.MINUTES)
+    }
 
+    val ruzNotifyService: RuzNotifyService = context.getBean()
+    scheduler.scheduleAtFixedRate(ruzNotifyService::update, 10, 60, TimeUnit.SECONDS)
+
+    val youtubeNotifyService: YoutubeNotifyService = context.getBean()
+    scheduler.scheduleAtFixedRate(youtubeNotifyService::update, 10, 60, TimeUnit.SECONDS)
+
+    val pollingTelegramBot: PollingTelegramBot = context.getBean()
     pollingTelegramBot.startLongPolling()
 }

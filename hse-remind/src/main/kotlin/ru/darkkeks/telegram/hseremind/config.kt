@@ -8,6 +8,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import ru.darkkeks.telegram.core.PropertyPresentPolymorphicDeserializer
+import ru.darkkeks.telegram.hseremind.youtube.YouTubeRuleSpec
+import ru.darkkeks.telegram.hseremind.youtube.YouTubeSource
+import ru.darkkeks.telegram.hseremind.youtube.YoutubeFilter
+import ru.darkkeks.telegram.hseremind.ruz.RuzFilter
+import ru.darkkeks.telegram.hseremind.ruz.RuzRuleSpec
+import ru.darkkeks.telegram.hseremind.ruz.RuzSource
 
 
 data class UserSpec(
@@ -18,12 +24,9 @@ data class UserSpec(
 data class ChatSpec(
         val name: String,
         val target: Target,
-        val rules: List<RuleSpec>
-)
-
-data class RuleSpec(
-        val source: Source,
-        val filter: Filter?
+        val rules: List<RuzRuleSpec>?,
+        val lectureRules: List<RuzRuleSpec>?,
+        val youtubeRules: List<YouTubeRuleSpec>?
 )
 
 @JsonSubTypes(
@@ -37,38 +40,26 @@ data class MeTarget(val me: Any) : Target()
 data class ChannelTarget(val channel: Long) : Target()
 data class GroupTarget(val group: Long) : Target()
 
-@JsonSubTypes(
-        JsonSubTypes.Type(value = GroupSource::class, name = "group"),
-        JsonSubTypes.Type(value = StudentSource::class, name = "student")
-)
+fun targetToChatId(user: User, target: Target): Long? {
+    return when (target) {
+        is GroupTarget -> target.group
+        is ChannelTarget -> target.channel
+        is MeTarget -> user.id
+        else -> null
+    }
+}
+
+
 abstract class Source
 
-data class GroupSource(val group: String) : Source()
-data class StudentSource(val student: String) : Source()
-
-@JsonSubTypes(
-        JsonSubTypes.Type(value = LectureNameFilter::class, name = "lecture_name"),
-        JsonSubTypes.Type(value = WeekDaysFilter::class, name = "week_days"),
-        JsonSubTypes.Type(value = LecturerNameFilter::class, name = "lecturer_name"),
-        JsonSubTypes.Type(value = LectureTypeFilter::class, name = "lecture_type"),
-        JsonSubTypes.Type(value = AllOfFilter::class, name = "all_of"),
-        JsonSubTypes.Type(value = AnyOfFilter::class, name = "any_of"),
-        JsonSubTypes.Type(value = NoneOfFilter::class, name = "none_of")
-)
 abstract class Filter
-
-data class LectureNameFilter(val lectureName: String) : Filter()
-data class WeekDaysFilter(val weekDays: List<Int>) : Filter()
-data class LecturerNameFilter(val lecturerName: String) : Filter()
-data class LectureTypeFilter(val lectureType: String) : Filter()
-data class AllOfFilter(val allOf: List<Filter>) : Filter()
-data class AnyOfFilter(val anyOf: List<Filter>) : Filter()
-data class NoneOfFilter(val noneOf: List<Filter>) : Filter()
 
 
 val polymorphicModule: SimpleModule = SimpleModule()
-        .addDeserializer(Filter::class.java, PropertyPresentPolymorphicDeserializer(Filter::class.java))
-        .addDeserializer(Source::class.java, PropertyPresentPolymorphicDeserializer(Source::class.java))
+        .addDeserializer(RuzFilter::class.java, PropertyPresentPolymorphicDeserializer(RuzFilter::class.java))
+        .addDeserializer(RuzSource::class.java, PropertyPresentPolymorphicDeserializer(RuzSource::class.java))
+        .addDeserializer(YoutubeFilter::class.java, PropertyPresentPolymorphicDeserializer(YoutubeFilter::class.java))
+        .addDeserializer(YouTubeSource::class.java, PropertyPresentPolymorphicDeserializer(YouTubeSource::class.java))
         .addDeserializer(Target::class.java, PropertyPresentPolymorphicDeserializer(Target::class.java))
 
 val readMapper: ObjectMapper = ObjectMapper(YAMLFactory())

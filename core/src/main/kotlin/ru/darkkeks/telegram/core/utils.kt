@@ -17,7 +17,11 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.*
+import kotlin.reflect.KClass
 
+fun <T : Any> createLogger(kclass: KClass<T>): Logger {
+    return LoggerFactory.getLogger(kclass.java)
+}
 
 inline fun <reified T> createLogger(): Logger {
     return LoggerFactory.getLogger(T::class.java)

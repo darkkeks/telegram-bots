@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component
 @Component
 class UserConfigService(
         val userRepository: UserRepository,
-        val sourceFetchService: SourceFetchService
+        val sourceFetchers: List<SourceFetchService>
 ) {
-
     private val config: MutableMap<Long, UserSpec> = mutableMapOf()
 
     fun load() {
@@ -19,26 +18,30 @@ class UserConfigService(
     }
 
     fun update(user: User) {
-        val prevSpec = config[user.id]
-        if (prevSpec != null) {
-            removeSpec(prevSpec)
+        val previousSpec = config.put(user.id, user.spec)
+        if (previousSpec != null) {
+            removeSpec(previousSpec)
         }
-        config[user.id] = user.spec
         addSpec(user.spec)
     }
 
     fun addSpec(spec: UserSpec) {
-        spec.chats.forEach { chat ->
-            chat.rules.forEach { rule ->
-                sourceFetchService.addSource(rule.source)
-            }
-        }
+        forEachRule(spec) { fetcher, source -> fetcher.addSource(source) }
     }
 
     fun removeSpec(spec: UserSpec) {
-        spec.chats.forEach { chat ->
-            chat.rules.forEach { rule ->
-                sourceFetchService.removeSource(rule.source)
+        forEachRule(spec) { fetcher, source -> fetcher.removeSource(source) }
+    }
+
+    fun forEachRule(spec: UserSpec, block: (SourceFetchService, Source) -> Unit) {
+        sourceFetchers.forEach { fetcher ->
+            spec.chats.forEach { chat ->
+                (chat.lectureRules ?: chat.rules)?.forEach { rule ->
+                    block(fetcher, rule.source)
+                }
+                chat.youtubeRules?.forEach { rule ->
+                    block(fetcher, rule.source)
+                }
             }
         }
     }

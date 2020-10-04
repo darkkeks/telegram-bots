@@ -1,4 +1,4 @@
-package ru.darkkeks.telegram.hseremind
+package ru.darkkeks.telegram.hseremind.ruz
 
 import retrofit2.Call
 import retrofit2.http.GET

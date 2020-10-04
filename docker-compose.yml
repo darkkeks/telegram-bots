@@ -9,6 +9,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE
       - BOT_TOKEN
+      - YOUTUBE_KEY
 
   mongo:
     image: mongo:latest
