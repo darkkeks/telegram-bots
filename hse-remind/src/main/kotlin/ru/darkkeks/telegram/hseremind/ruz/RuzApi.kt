@@ -16,7 +16,7 @@ interface RuzApi {
     @GET("schedule/{type}/{id}")
     fun schedule(
             @Path("type") type: String,
-            @Path("id") id: Int,
+            @Path("id") id: Long,
             @Query("start") start: String? = null,
             @Query("finish") finish: String? = null
     ): Call<List<ScheduleItem>>
@@ -24,7 +24,7 @@ interface RuzApi {
 }
 
 class SearchResult(
-        val id: Int,
+        val id: Long,
         val label: String,
         val description: String,
         val type: String

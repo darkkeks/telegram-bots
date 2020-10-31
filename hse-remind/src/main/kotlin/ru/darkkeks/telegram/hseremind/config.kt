@@ -2,18 +2,20 @@ package ru.darkkeks.telegram.hseremind
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import ru.darkkeks.telegram.core.PropertyPresentPolymorphicDeserializer
-import ru.darkkeks.telegram.hseremind.youtube.YouTubeRuleSpec
-import ru.darkkeks.telegram.hseremind.youtube.YouTubeSource
-import ru.darkkeks.telegram.hseremind.youtube.YoutubeFilter
+import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.hseremind.ruz.RuzFilter
 import ru.darkkeks.telegram.hseremind.ruz.RuzRuleSpec
 import ru.darkkeks.telegram.hseremind.ruz.RuzSource
+import ru.darkkeks.telegram.hseremind.youtube.YouTubeRuleSpec
+import ru.darkkeks.telegram.hseremind.youtube.YouTubeSource
+import ru.darkkeks.telegram.hseremind.youtube.YoutubeFilter
 
 
 data class UserSpec(
@@ -40,16 +42,6 @@ data class MeTarget(val me: Any) : Target()
 data class ChannelTarget(val channel: Long) : Target()
 data class GroupTarget(val group: Long) : Target()
 
-fun targetToChatId(user: User, target: Target): Long? {
-    return when (target) {
-        is GroupTarget -> target.group
-        is ChannelTarget -> target.channel
-        is MeTarget -> user.id
-        else -> null
-    }
-}
-
-
 abstract class Source
 
 abstract class Filter
@@ -73,3 +65,28 @@ val jsonWriteMapper: ObjectMapper = ObjectMapper()
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
         .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
         .registerModule(polymorphicModule)
+
+
+fun targetToChatId(user: User, target: Target): Long? {
+    return when (target) {
+        is GroupTarget -> target.group
+        is ChannelTarget -> target.channel
+        is MeTarget -> user.id
+        else -> null
+    }
+}
+
+fun safeParseSpec(spec: String): UserSpec? {
+    return try {
+        readMapper.readValue(spec, UserSpec::class.java)
+    } catch (e: JsonParseException) {
+        val logger = createLogger<UserSpec>()
+        logger.warn("Failed to parse user spec", e)
+        return null
+    }
+}
+
+fun serializeSpec(spec: UserSpec): String {
+    return jsonWriteMapper.writeValueAsString(spec)
+}
+

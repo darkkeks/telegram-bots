@@ -10,6 +10,7 @@ import java.time.LocalTime
 
 @Component
 class RuzNotifyService(
+        val userConfigService: UserConfigService,
         val userRepository: UserRepository,
         val ruzNotificationSendService: RuzNotificationSendService,
         val ruzSourceFetchService: RuzSourceFetchService,
@@ -30,7 +31,8 @@ class RuzNotifyService(
     fun update() = try {
         logger.info("Starting notify iteration")
         userRepository.findAll().forEach { user ->
-            user.spec.chats.forEach { chat ->
+            val spec = safeParseSpec(user.spec)
+            spec?.chats?.forEach { chat ->
                 (chat.lectureRules ?: chat.rules)?.forEach { rule ->
                     val items = ruzSourceFetchService.getSourceInfo(rule.source)
                     items?.forEach { item ->

@@ -28,11 +28,12 @@ class YoutubeNotifyService(
         logger.info("Starting notify iteration")
 
         val notifications = userRepository.findAll().flatMap { user ->
-            user.spec.chats.flatMap { chat ->
+            val spec = safeParseSpec(user.spec)
+            spec?.chats?.flatMap { chat ->
                 chat.youtubeRules?.flatMap { rule ->
                     processRule(user, chat, rule)
                 } ?: listOf()
-            }
+            } ?: listOf()
         }
 
         notifications
@@ -85,5 +86,4 @@ class YoutubeNotifyService(
 
         Thread.sleep(4000)
     }
-
 }

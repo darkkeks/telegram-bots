@@ -12,7 +12,7 @@ class RuzSourceFetchService(val ruzApi: RuzApi) : AbstractSourceFetchService<Ruz
 
     override val sourceType: KClass<RuzSource> = RuzSource::class
 
-    private val sourceToId: MutableMap<RuzSource, Int> = mutableMapOf()
+    private val sourceToId: MutableMap<RuzSource, Long> = mutableMapOf()
 
     override fun update() {
         getSources().forEach { source ->
@@ -33,7 +33,7 @@ class RuzSourceFetchService(val ruzApi: RuzApi) : AbstractSourceFetchService<Ruz
         }
     }
 
-    private fun fetchSourceInfo(source: RuzSource, id: Int): List<ScheduleItem>? {
+    private fun fetchSourceInfo(source: RuzSource, id: Long): List<ScheduleItem>? {
         val (type, _) = sourceToTypeAndTerm(source) ?: return null
 
         val today = ZonedDateTime.now(RuzUtils.moscowZoneId)
@@ -62,7 +62,7 @@ class RuzSourceFetchService(val ruzApi: RuzApi) : AbstractSourceFetchService<Ruz
         }
     }
 
-    private fun fetchSourceId(source: RuzSource): Int? {
+    private fun fetchSourceId(source: RuzSource): Long? {
         val (type, term) = sourceToTypeAndTerm(source) ?: return null
 
         val response = try {

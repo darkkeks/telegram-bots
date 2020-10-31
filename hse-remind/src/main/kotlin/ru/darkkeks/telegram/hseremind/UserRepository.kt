@@ -8,5 +8,5 @@ interface UserRepository : CrudRepository<User, Long>
 
 data class User(
         val id: Long,
-        val spec: UserSpec
+        val spec: String
 )

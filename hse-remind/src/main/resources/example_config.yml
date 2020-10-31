@@ -67,14 +67,14 @@ chats:
 
   - name: "Лекции"
     target:
-      channel: -1001459653369
+      channel: -1001240134828
 
     # Брать видео из плейлистов ютаба
     youtube_rules:
       - source:
           # хештег под видео
           name: 'ДМ2'
-          # id плейилста (можно скопировать из ссылки на плейлист)
+          # id плейлиста (можно скопировать из ссылки на плейлист)
           playlist: 'PLEwK9wdS5g0rlJ8sZo5x0rJYRdl4XFeZt'
       - source:
           name: 'ДМ2'

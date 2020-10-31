@@ -121,21 +121,14 @@ class HseRemindUpdateHandler(
             return
         }
 
-        saveConfig(chatId, config)
-    }
-
-    private fun saveConfig(chatId: Long, config: UserSpec) {
-        val newUser = userRepository.findById(chatId)
-                .map { it.copy(spec = config) }
-                .orElseGet { User(chatId, config) }
-
-        userRepository.save(newUser)
-
-        userConfigService.update(newUser)
+        userConfigService.updateUserConfig(chatId, config)
 
         telegram.sendMessage(chatId, """
             Успешно сохранил новый конфиг! 👍
         """.trimIndent()).executeChecked()
+    }
+
+    private fun saveConfig(chatId: Long, config: UserSpec) {
     }
 
     private fun export(chatId: Long, format: String?) {
