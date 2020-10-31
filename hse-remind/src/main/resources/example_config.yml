@@ -43,9 +43,6 @@ chats:
             - week_days:
                 - 3
             - all_of:
-                - lecture_type: "Практическое занятие"
-                - lecturer_name: ".*Смирнов.*"
-            - all_of:
                 - lecture_type: "Семинар"
                 - lecture_name: ".*Математический анализ.*"
             - all_of:
@@ -62,6 +59,12 @@ chats:
                 - lecture_name: ".*Математический анализ.*"
                 - lecture_name: ".*Теория вероятностей.*"
 
+      - source:
+          lecturer: "Новиков Борис Асенович"
+        filter:
+          lecture_name: '.*Технологии баз данных.*'
+
+
   - name: "Лекции"
     target:
       channel: -1001459653369
@@ -74,12 +77,12 @@ chats:
           # id плейилста (можно скопировать из ссылки на плейлист)
           playlist: 'PLEwK9wdS5g0rlJ8sZo5x0rJYRdl4XFeZt'
       - source:
+          name: 'ДМ2'
+          playlist: 'PL1Uob8iPTHGRZB9F2yjqXhGp75g1ZJFk-'
+      - source:
           name: 'ТВиМС'
           playlist: 'PLEwK9wdS5g0rSOfuEG8wmghP682aEPPud'
       - source:
           name: 'МА2'
           playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
-      - source:
-          name: 'АИСД'
-          playlist: 'PLEwK9wdS5g0o-8ANvtyqqPXI-wD7Ddl7G'
 version: 1

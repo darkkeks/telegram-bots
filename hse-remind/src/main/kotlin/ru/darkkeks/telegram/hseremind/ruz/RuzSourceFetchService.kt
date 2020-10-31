@@ -83,6 +83,7 @@ class RuzSourceFetchService(val ruzApi: RuzApi) : AbstractSourceFetchService<Ruz
     private fun sourceToTypeAndTerm(source: RuzSource): Pair<String, String>? {
         return when (source) {
             is StudentSource -> "student" to source.student
+            is LecturerSource -> "person" to source.lecturer
             is GroupSource -> "group" to source.group
             else -> return null
         }

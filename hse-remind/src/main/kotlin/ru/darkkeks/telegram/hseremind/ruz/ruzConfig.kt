@@ -10,12 +10,14 @@ data class RuzRuleSpec(
 
 @JsonSubTypes(
         JsonSubTypes.Type(value = GroupSource::class, name = "group"),
-        JsonSubTypes.Type(value = StudentSource::class, name = "student")
+        JsonSubTypes.Type(value = StudentSource::class, name = "student"),
+        JsonSubTypes.Type(value = LecturerSource::class, name = "lecturer")
 )
 abstract class RuzSource : Source()
 
 data class GroupSource(val group: String) : RuzSource()
 data class StudentSource(val student: String) : RuzSource()
+data class LecturerSource(val lecturer: String) : RuzSource()
 
 @JsonSubTypes(
         JsonSubTypes.Type(value = LectureNameFilter::class, name = "lecture_name"),

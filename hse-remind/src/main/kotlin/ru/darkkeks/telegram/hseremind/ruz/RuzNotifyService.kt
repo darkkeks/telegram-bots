@@ -3,7 +3,6 @@ package ru.darkkeks.telegram.hseremind.ruz
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.hseremind.*
-import ru.darkkeks.telegram.hseremind.Target
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
