@@ -21,7 +21,8 @@ class YoutubeNotifyService(
     data class NotifyItem(
             val name: String,
             val chatId: Long,
-            val video: Video
+            val video: Video,
+            val playlistSource: PlaylistSource
     )
 
     fun update() = try {
@@ -38,7 +39,7 @@ class YoutubeNotifyService(
 
         notifications
                 .sortedBy { it.video.publishedAt }
-                .forEach { sendNotification(it.name, it.chatId, it.video) }
+                .forEach { sendNotification(it.name, it.chatId, it.video, it.playlistSource) }
 
         logger.info("Done")
     } catch (e : Exception) {
@@ -60,7 +61,7 @@ class YoutubeNotifyService(
             if (rule.filter == null || itemFilterService.shouldNotify(video, rule.filter)) {
                 val chatId = targetToChatId(user, chat.target)
                 if (chatId != null) {
-                    items.add(NotifyItem(playlistSource.name, chatId, video))
+                    items.add(NotifyItem(playlistSource.name, chatId, video, playlistSource))
                 }
             }
         }
@@ -69,10 +70,10 @@ class YoutubeNotifyService(
         return items
     }
 
-    private fun sendNotification(name: String, chatId: Long, video: Video) {
+    private fun sendNotification(name: String, chatId: Long, video: Video, playlistSource: PlaylistSource) {
         val items = video.title.split(""",\s*""".toRegex()).joinToString("\n")
         var text = items + "\n"
-        text += "https://youtube.com/watch?v=${video.id}\n"
+        text += "https://youtube.com/watch?v=${video.id}&list=${playlistSource.playlist}\n"
         text += "#$name"
 
         logger.info("Sending notification:\n{}", text)
