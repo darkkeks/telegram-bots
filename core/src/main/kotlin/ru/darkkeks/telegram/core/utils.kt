@@ -1,8 +1,11 @@
 package ru.darkkeks.telegram.core
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.PrettyPrinter
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
@@ -38,6 +41,7 @@ fun formatTime(time: Instant): String = formatter.format(time)
 val objectMapper: ObjectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 
 val prettyWriter: ObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()

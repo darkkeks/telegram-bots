@@ -22,7 +22,7 @@ class ItemFilterService {
                 ruzFilter.lecturerName.toRegex(RegexOption.IGNORE_CASE).matches(item.lecturer)
             }
             is LectureTypeFilter -> {
-                ruzFilter.lectureType.trim() == item.kindOfWork.trim()
+                return item.kindOfWork != null && ruzFilter.lectureType.trim() == item.kindOfWork.trim()
             }
             is AllOfRuzFilter -> {
                 ruzFilter.allOf.all { shouldNotify(item, it, now) }

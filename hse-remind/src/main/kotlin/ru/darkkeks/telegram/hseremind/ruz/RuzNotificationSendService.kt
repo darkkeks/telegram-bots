@@ -41,7 +41,7 @@ class RuzNotificationSendService(val telegram: Telegram) {
 
         return """
             <b>${item.discipline}</b>
-            ${item.kindOfWork}
+            ${item.kindOfWork ?: ""}
             Дата: ${item.date}
             Время: <b>${item.beginLesson} &#8212; ${item.endLesson}</b>
             Место: ${item.auditorium}
