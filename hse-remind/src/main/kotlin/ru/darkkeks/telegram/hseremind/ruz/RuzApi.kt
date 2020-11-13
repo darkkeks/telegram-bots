@@ -73,6 +73,8 @@ class ScheduleItem(
         val endLesson: String,
         //  "АиСД2(угл)_Б2019_ПМИИ_3_2#С#Алгоритмы и структуры данных 2 (углубленный курс)",
         val group: String,
+	// "3860348949"
+	val groupUID: String?,
         //  28914,
         val groupOid: Int,
         //  5588,

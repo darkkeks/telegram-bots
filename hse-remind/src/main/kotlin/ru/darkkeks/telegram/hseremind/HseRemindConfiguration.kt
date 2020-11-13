@@ -1,5 +1,6 @@
 package ru.darkkeks.telegram.hseremind
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -72,7 +73,9 @@ class HseRemindConfiguration {
                @Value("\${ruz.base_url}") baseUrl: String): RuzApi {
         return Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .addConverterFactory(JacksonConverterFactory.create(ObjectMapper().registerModule(KotlinModule())))
+                .addConverterFactory(JacksonConverterFactory.create(ObjectMapper()
+		        .registerModule(KotlinModule())
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)))
                 .client(okHttpClient)
                 .build()
                 .create(RuzApi::class.java)
