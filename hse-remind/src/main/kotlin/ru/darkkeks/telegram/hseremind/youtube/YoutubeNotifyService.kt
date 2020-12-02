@@ -99,7 +99,8 @@ class YoutubeNotifyService(
                 add(name + "_" + match.value)
             }
 
-            if (title.contains("лекция", ignoreCase = true)) {
+            if (title.contains("лекция", ignoreCase = true)
+                    || title.contains("lect", ignoreCase = true)) {
                 add(name + "_Л")
             }
         }
