@@ -74,7 +74,7 @@ class YoutubeNotifyService(
         val items = video.title.split(""",\s*""".toRegex()).joinToString("\n")
         var text = items + "\n"
         text += "https://youtube.com/watch?v=${video.id}&list=${playlistSource.playlist}\n"
-        text += "#$name"
+        text += extractTags(name, video.title).joinToString(" ")
 
         logger.info("Sending notification:\n{}", text)
 
@@ -86,5 +86,23 @@ class YoutubeNotifyService(
         }
 
         Thread.sleep(4000)
+    }
+
+    private fun extractTags(name: String, title: String): List<String> {
+        val tags = buildList {
+            add(name)
+
+            val groupRegex = """19\d{1,2}""".toRegex()
+            val match = groupRegex.find(title)
+            if (match != null) {
+                add("Г" + match.value)
+                add(name + "_" + match.value)
+            }
+
+            if (title.contains("лекция", ignoreCase = true)) {
+                add(name + "_Л")
+            }
+        }
+        return tags.map { "#$it" }
     }
 }

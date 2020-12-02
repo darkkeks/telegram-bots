@@ -17,6 +17,11 @@ class YoutubeSourceFetchService(
 
     override val sourceType = YouTubeSource::class
 
+    data class PageInfo(
+            val videos: List<Video>,
+            val pageToken: String?
+    )
+
     override fun update() {
         val sources = getSources()
                 .filterIsInstance<PlaylistSource>()
@@ -26,31 +31,19 @@ class YoutubeSourceFetchService(
                 .distinct()
 
         val results = playlistIds.map { id ->
-            val response = youTube.PlaylistItems()
-                    .list("id,snippet")
-                    .apply {
-                        maxResults = 100
-                        playlistId = id
-                    }
-                    .execute()
+            val result = mutableListOf<Video>()
 
-            val videos = response.items
-                    .asSequence()
-                    .filter { it.kind == "youtube#playlistItem" }
-                    .map { it.snippet }
-                    .filter { it.resourceId.kind == "youtube#video" }
-                    .sortedBy { it.position }
-                    .map {
-                        Video(
-                                id = it.resourceId.videoId,
-                                title = it.title,
-                                description = it.description,
-                                publishedAt = toMoscowLocalDateTime(it.publishedAt)
-                        )
-                    }
-                    .toList()
+            var pageToken: String? = null
+            while (true) {
+                val page = getPlaylistPage(id, pageToken)
+                result += page.videos
+                pageToken = page.pageToken
+                if (pageToken == null) {
+                    break
+                }
+            }
 
-            id to Playlist(id, videos)
+            id to Playlist(id, result)
         }.toMap()
 
         sources.forEach { source ->
@@ -59,6 +52,35 @@ class YoutubeSourceFetchService(
                 putSourceInfo(source, result)
             }
         }
+    }
+
+    private fun getPlaylistPage(id: String, page: String? = null): PageInfo {
+        val response = youTube.PlaylistItems()
+                .list("id,snippet")
+                .apply {
+                    maxResults = 50
+                    playlistId = id
+                    pageToken = page
+                }
+                .execute()
+
+        val videos = response.items
+                .asSequence()
+                .filter { it.kind == "youtube#playlistItem" }
+                .map { it.snippet }
+                .filter { it.resourceId.kind == "youtube#video" }
+                .sortedBy { it.position }
+                .map {
+                    Video(
+                            id = it.resourceId.videoId,
+                            title = it.title,
+                            description = it.description,
+                            publishedAt = toMoscowLocalDateTime(it.publishedAt)
+                    )
+                }
+                .toList()
+
+        return PageInfo(videos, response.nextPageToken)
     }
 
     private fun toMoscowLocalDateTime(dateTime: DateTime): LocalDateTime {
