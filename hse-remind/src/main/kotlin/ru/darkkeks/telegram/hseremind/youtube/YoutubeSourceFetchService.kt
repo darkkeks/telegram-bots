@@ -30,6 +30,8 @@ class YoutubeSourceFetchService(
                 .map { it.playlist }
                 .distinct()
 
+        logger.info("Fetching {} playlist sources", playlistIds.size)
+
         val results = playlistIds.map { id ->
             val result = mutableListOf<Video>()
 
@@ -45,6 +47,8 @@ class YoutubeSourceFetchService(
 
             id to Playlist(id, result)
         }.toMap()
+
+        logger.info("fetched results for {} playlists", results.size)
 
         sources.forEach { source ->
             val result = results[source.playlist]

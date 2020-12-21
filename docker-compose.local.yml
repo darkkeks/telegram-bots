@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  hse-remind:
+    build:
+      context: .
+      dockerfile: ./hse-remind/deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - BOT_TOKEN
+      - YOUTUBE_KEY
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - 27017:27017
+
+volumes:
+  mongo-data:
