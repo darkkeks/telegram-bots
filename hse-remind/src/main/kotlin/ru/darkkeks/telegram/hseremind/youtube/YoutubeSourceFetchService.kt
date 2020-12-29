@@ -48,7 +48,7 @@ class YoutubeSourceFetchService(
             id to Playlist(id, result)
         }.toMap()
 
-        logger.info("fetched results for {} playlists", results.size)
+        logger.info("Fetched results for {} playlists", results.size)
 
         sources.forEach { source ->
             val result = results[source.playlist]

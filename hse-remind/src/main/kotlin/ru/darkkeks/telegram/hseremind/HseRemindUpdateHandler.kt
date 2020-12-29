@@ -128,9 +128,6 @@ class HseRemindUpdateHandler(
         """.trimIndent()).executeChecked()
     }
 
-    private fun saveConfig(chatId: Long, config: UserSpec) {
-    }
-
     private fun export(chatId: Long, format: String?) {
         val (mapper, mimeType) = when (format) {
             "json" -> jsonWriteMapper to "application/json"
@@ -154,12 +151,12 @@ class HseRemindUpdateHandler(
         }
 
         val user = userOptional.get()
-        val spec = user.spec
+        val spec = safeParseSpec(user.spec)
 
         val content = try {
             mapper.writeValueAsString(spec)
         } catch (e: Exception) {
-            logger.warn("Cant serialize config for user {}", chatId, e)
+            logger.error("Cant serialize config for user {}", chatId, e)
             telegram.sendMessage(chatId, """
                 Странно, не получилось экспортировать конфиг. 🤯
                 Напиши пожалуйста @darkkeks. Твой репорт поможет найти проблему сразу, а не через inf дней.
@@ -174,7 +171,7 @@ class HseRemindUpdateHandler(
                 Держи!
             """.trimIndent()).executeChecked()
         } catch (e: Exception) {
-            logger.warn("Cant send exported config for user {}, config:" , chatId, content, e)
+            logger.error("Cant send exported config for user {}, config:" , chatId, content, e)
             telegram.sendMessage(chatId, """
                 Странно, не получилось отправить файл с конфигом. 🤯
                 Напиши пожалуйста @darkkeks. Твой репорт поможет найти проблему сразу, а не через inf дней.
