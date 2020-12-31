@@ -1,7 +1,15 @@
 package ru.darkkeks.telegram.hseremind
 
 import org.springframework.stereotype.Component
-import ru.darkkeks.telegram.hseremind.ruz.*
+import ru.darkkeks.telegram.hseremind.ruz.AllOfRuzFilter
+import ru.darkkeks.telegram.hseremind.ruz.AnyOfRuzFilter
+import ru.darkkeks.telegram.hseremind.ruz.LectureNameFilter
+import ru.darkkeks.telegram.hseremind.ruz.LectureTypeFilter
+import ru.darkkeks.telegram.hseremind.ruz.LecturerNameFilter
+import ru.darkkeks.telegram.hseremind.ruz.NoneOfRuzFilter
+import ru.darkkeks.telegram.hseremind.ruz.RuzFilter
+import ru.darkkeks.telegram.hseremind.ruz.ScheduleItem
+import ru.darkkeks.telegram.hseremind.ruz.WeekDaysFilter
 import ru.darkkeks.telegram.hseremind.youtube.TitleFilter
 import ru.darkkeks.telegram.hseremind.youtube.Video
 import ru.darkkeks.telegram.hseremind.youtube.YoutubeFilter

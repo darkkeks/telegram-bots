@@ -41,44 +41,54 @@ class HseRemindConfiguration {
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
         return OkHttpClient.Builder()
 //                .addInterceptor(interceptor)
-                .build()
+            .build()
     }
 
     @Bean
-    fun telegram(okHttpClient: OkHttpClient,
-                 @Value("\${telegram.base_url}") baseUrl: String,
-                 @Value("\${telegram.token}") telegramToken: String): Telegram {
+    fun telegram(
+        okHttpClient: OkHttpClient,
+        @Value("\${telegram.base_url}") baseUrl: String,
+        @Value("\${telegram.token}") telegramToken: String
+    ): Telegram {
         return Retrofit.Builder()
-                .baseUrl("$baseUrl$telegramToken/")
-                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-                .client(okHttpClient)
-                .build()
-                .create(Telegram::class.java)
+            .baseUrl("$baseUrl$telegramToken/")
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .client(okHttpClient)
+            .build()
+            .create(Telegram::class.java)
     }
 
     @Bean
-    fun telegramFiles(okHttpClient: OkHttpClient,
-                      @Value("\${telegram.file_url}") baseUrl: String,
-                      @Value("\${telegram.token}") telegramToken: String): TelegramFiles {
+    fun telegramFiles(
+        okHttpClient: OkHttpClient,
+        @Value("\${telegram.file_url}") baseUrl: String,
+        @Value("\${telegram.token}") telegramToken: String
+    ): TelegramFiles {
         return Retrofit.Builder()
-                .baseUrl("$baseUrl$telegramToken/")
-                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-                .client(okHttpClient)
-                .build()
-                .create(TelegramFiles::class.java)
+            .baseUrl("$baseUrl$telegramToken/")
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .client(okHttpClient)
+            .build()
+            .create(TelegramFiles::class.java)
     }
 
     @Bean
-    fun ruzApi(okHttpClient: OkHttpClient,
-               @Value("\${ruz.base_url}") baseUrl: String): RuzApi {
+    fun ruzApi(
+        okHttpClient: OkHttpClient,
+        @Value("\${ruz.base_url}") baseUrl: String
+    ): RuzApi {
         return Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(JacksonConverterFactory.create(ObjectMapper()
-		        .registerModule(KotlinModule())
-			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)))
-                .client(okHttpClient)
-                .build()
-                .create(RuzApi::class.java)
+            .baseUrl(baseUrl)
+            .addConverterFactory(
+                JacksonConverterFactory.create(
+                    ObjectMapper()
+                        .registerModule(KotlinModule())
+                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                )
+            )
+            .client(okHttpClient)
+            .build()
+            .create(RuzApi::class.java)
     }
 
     @Bean
@@ -86,16 +96,16 @@ class HseRemindConfiguration {
         val jacksonFactory = JacksonFactory.getDefaultInstance()
         val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
         return YouTube.Builder(httpTransport, jacksonFactory, null)
-                .setYouTubeRequestInitializer(YouTubeRequestInitializer(key))
-                .setApplicationName(this::class.simpleName)
-                .build()
+            .setYouTubeRequestInitializer(YouTubeRequestInitializer(key))
+            .setApplicationName(this::class.simpleName)
+            .build()
     }
 
     @Bean
     fun telegramBot(
-            telegram: Telegram,
-            executorService: ScheduledExecutorService,
-            hseRemindUpdateHandler: HseRemindUpdateHandler
+        telegram: Telegram,
+        executorService: ScheduledExecutorService,
+        hseRemindUpdateHandler: HseRemindUpdateHandler
     ): PollingTelegramBot {
         return PollingTelegramBot(telegram, executorService, hseRemindUpdateHandler)
     }

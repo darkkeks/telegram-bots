@@ -12,6 +12,8 @@ INTERFACE = {
     ],
     'InputMedia': [
         'InputMediaPhoto',
+        'InputMediaVideo',
+        'InputMediaDocument',
         'InputMediaVideo'
     ]
 }
@@ -49,11 +51,13 @@ CUSTOM_TYPES = {
     'Chat': {
         'type': 'ChatType'
     },
+    'SendChatActionRequest': {
+        'action': 'ChatAction'
+    },
     '__GLOBAL__': {
         'parseMode': 'ParseMode'
     },
 }
-
 
 def to_camel_case(name):
     items = name.split('_')
@@ -84,7 +88,9 @@ def generate_model(html):
     types = [parse_types(section) for section in sections.values()]
     types = [x for y in types for x in y]
 
-    result += ["""package ru.darkkeks.telegram.core.api
+    result += ["""@file:Suppress("unused")
+
+package ru.darkkeks.telegram.core.api
 
 import com.fasterxml.jackson.annotation.JsonValue"""]
     result += [generate_type(type_info) for type_info in types]
@@ -102,8 +108,7 @@ def generate_enums():
         current += ',\n'.join(enum_values) + ';\n'
         current += """
     override fun toString() = jsonName
-}
-"""
+}"""
         result.append(current)
     return result
 
@@ -140,10 +145,10 @@ def generate_type(type_info):
             if idx > 0:
                 result += ','
             result += '\n\n'
-            result += f'        /**\n'
-            result += format_doc(field['desc'], 8)
-            result += f'         */\n'
-            result += f"        val {field_name}: {field_type}"
+            result += f'    /**\n'
+            result += format_doc(field['desc'], 4)
+            result += f'     */\n'
+            result += f"    val {field_name}: {field_type}"
             if 'optional' in field:
                 result += '? = null'
 
@@ -159,19 +164,25 @@ def generate_type(type_info):
 def format_doc(doc, indent=0):
     length = 116 - indent
 
-    words = doc.split(' ')
-    lines = []
+    result = []
 
-    current_line = 228
-    for word in words:
-        if current_line + 1 + len(word) > length:
-            lines.append('')
-            current_line = 0
+    sentences = doc.split('\n')
+    for sentence in sentences:
+        words = sentence.split(' ')
+        lines = []
 
-        current_line += 1 + len(word)
-        lines[-1] += ' ' + word
+        current_line = 228
+        for word in words:
+            if current_line + 1 + len(word) > length:
+                lines.append('')
+                current_line = 0
 
-    return ''.join([indent * ' ' + ' * ' + line + '\n' for line in lines])
+            current_line += 1 + len(word)
+            lines[-1] += ' ' + word
+
+        result.append(''.join([indent * ' ' + ' * ' + line + '\n' for line in lines]))
+
+    return (indent * ' ' + ' *\n').join(result)
 
 
 def process_type(typename, field_name, type_name, desc):
@@ -185,10 +196,22 @@ def process_type(typename, field_name, type_name, desc):
         typename = f"List<{process_type(typename.replace('Array of ', '', 1), field_name, type_name, desc)}>"
 
     if ' or ' in typename:
-        typename = typename.split(' or ')[0]
+        if 'Markup' in typename:
+            typename = 'Markup'
+        else:
+            typename = typename.split(' or ')[0]
+
+    if ', ' in typename:
+        if 'InputMedia' in typename:
+            typename = 'InputMedia'
+        else:
+            raise Exception(f'Unknown type {typename}')
 
     if typename == 'Integer':
-        typename = 'Int' if '64 bit' not in desc else 'Long'
+        if '64 bit' in desc or field_name.lower().endswith('chatid'):
+            typename = 'Long'
+        else:
+            typename = 'Int'
 
     if typename == 'True':
         typename = 'Boolean'
@@ -211,9 +234,13 @@ def parse_types(items):
 
     result = []
     for type, elements in types.items():
-        if type is None or ' ' in type or type[0].islower():
+        if type is None or ' ' in type:
             print(f'skipping {type}')
             continue
+
+        is_method = type[0].islower()
+        if is_method:
+            type = type[0].upper() + type[1:] + 'Request'
 
         type_info = {
             'name': type,
@@ -230,7 +257,10 @@ def parse_types(items):
                             field['name'] = col.text
                         elif idx == 1:
                             field['type'] = col.text
-                        elif idx == 2:
+                        elif is_method and idx == 2:
+                            if 'Optional' in col.text:
+                                field['optional'] = True
+                        elif (not is_method and idx == 2) or (is_method and idx == 3):
                             desc = col.text
                             if desc.startswith('Optional. '):
                                 field['optional'] = True

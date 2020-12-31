@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component
 interface UserRepository : CrudRepository<User, Long>
 
 data class User(
-        val id: Long,
-        val spec: String
+    val id: Long,
+    val spec: String
 )

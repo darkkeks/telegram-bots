@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.ParseMode
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.TelegramClientException
-import ru.darkkeks.telegram.core.api.executeChecked
 import ru.darkkeks.telegram.core.createLogger
 import java.time.Duration
 
@@ -19,9 +18,7 @@ class RuzNotificationSendService(val telegram: Telegram) {
         logger.info("Sending notification:\n{}", text)
 
         try {
-            telegram
-                    .sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
-                    .executeChecked()
+            telegram.sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
         } catch (e: TelegramClientException) {
             logger.warn("Failed to send notification to chat {}", chatId, e)
         }

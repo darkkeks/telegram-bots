@@ -5,8 +5,8 @@ import ru.darkkeks.telegram.core.createLogger
 
 @Component
 class UserConfigService(
-        val userRepository: UserRepository,
-        val sourceFetchers: List<SourceFetchService>
+    val userRepository: UserRepository,
+    val sourceFetchers: List<SourceFetchService>
 ) {
     private val logger = createLogger<UserConfigService>()
 
@@ -29,8 +29,8 @@ class UserConfigService(
         val specString = serializeSpec(spec)
 
         val user = userRepository.findById(userId)
-                .map { it.copy(spec = specString) }
-                .orElseGet { User(userId, specString) }
+            .map { it.copy(spec = specString) }
+            .orElseGet { User(userId, specString) }
 
         userRepository.save(user)
 

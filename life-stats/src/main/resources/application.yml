@@ -1,0 +1,10 @@
+---
+# Default profile is dev
+spring.profiles.active: dev
+
+telegram:
+  token: ${BOT_TOKEN}
+
+---
+spring.profiles: dev
+

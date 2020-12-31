@@ -20,8 +20,10 @@ fun main(args: Array<String>) {
         logger.error("Uncaught exception on thread {}", thread, throwable)
     }
 
-    fun ScheduledExecutorService.scheduleSafe(name: String?, task: () -> Unit,
-                                              initialDelay: Long, period: Long, timeUnit: TimeUnit) {
+    fun ScheduledExecutorService.scheduleSafe(
+        name: String?, task: () -> Unit,
+        initialDelay: Long, period: Long, timeUnit: TimeUnit
+    ) {
         scheduleAtFixedRate({
             try {
                 task()
@@ -42,17 +44,23 @@ fun main(args: Array<String>) {
 
     val sourceFetchers = context.getBeansOfType(SourceFetchService::class.java)
     sourceFetchers.values.forEach {
-        scheduler.scheduleSafe(it::class.simpleName, it::update,
-                0, 60, TimeUnit.MINUTES)
+        scheduler.scheduleSafe(
+            it::class.simpleName, it::update,
+            0, 60, TimeUnit.MINUTES
+        )
     }
 
     val ruzNotifyService: RuzNotifyService = context.getBean()
-    scheduler.scheduleSafe(RuzNotifyService::class.simpleName, ruzNotifyService::update,
-            10, 60, TimeUnit.SECONDS)
+    scheduler.scheduleSafe(
+        RuzNotifyService::class.simpleName, ruzNotifyService::update,
+        10, 60, TimeUnit.SECONDS
+    )
 
     val youtubeNotifyService: YoutubeNotifyService = context.getBean()
-    scheduler.scheduleSafe(YoutubeNotifyService::class.simpleName, youtubeNotifyService::update,
-            10, 60, TimeUnit.SECONDS)
+    scheduler.scheduleSafe(
+        YoutubeNotifyService::class.simpleName, youtubeNotifyService::update,
+        10, 60, TimeUnit.SECONDS
+    )
 
     val pollingTelegramBot: PollingTelegramBot = context.getBean()
     pollingTelegramBot.startLongPolling()

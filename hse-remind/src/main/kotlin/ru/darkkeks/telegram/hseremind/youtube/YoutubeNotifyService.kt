@@ -4,25 +4,29 @@ import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.ParseMode
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.TelegramClientException
-import ru.darkkeks.telegram.core.api.executeChecked
 import ru.darkkeks.telegram.core.createLogger
-import ru.darkkeks.telegram.hseremind.*
+import ru.darkkeks.telegram.hseremind.ChatSpec
+import ru.darkkeks.telegram.hseremind.ItemFilterService
+import ru.darkkeks.telegram.hseremind.User
+import ru.darkkeks.telegram.hseremind.UserRepository
+import ru.darkkeks.telegram.hseremind.safeParseSpec
+import ru.darkkeks.telegram.hseremind.targetToChatId
 
 @Component
 class YoutubeNotifyService(
-        val userRepository: UserRepository,
-        val youtubePlaylistRepository: YoutubePlaylistRepository,
-        val youtubeSourceFetchService: YoutubeSourceFetchService,
-        val itemFilterService: ItemFilterService,
-        val telegram: Telegram
+    val userRepository: UserRepository,
+    val youtubePlaylistRepository: YoutubePlaylistRepository,
+    val youtubeSourceFetchService: YoutubeSourceFetchService,
+    val itemFilterService: ItemFilterService,
+    val telegram: Telegram
 ) {
     val logger = createLogger<YoutubeNotifyService>()
 
     data class NotifyItem(
-            val name: String,
-            val chatId: Long,
-            val video: Video,
-            val playlistSource: PlaylistSource
+        val name: String,
+        val chatId: Long,
+        val video: Video,
+        val playlistSource: PlaylistSource
     )
 
     fun update() = try {
@@ -38,11 +42,11 @@ class YoutubeNotifyService(
         }
 
         notifications
-                .sortedBy { it.video.publishedAt }
-                .forEach { sendNotification(it.name, it.chatId, it.video, it.playlistSource) }
+            .sortedBy { it.video.publishedAt }
+            .forEach { sendNotification(it.name, it.chatId, it.video, it.playlistSource) }
 
         logger.info("Done")
-    } catch (e : Exception) {
+    } catch (e: Exception) {
         logger.warn("Exception during notify iteration", e)
     }
 
@@ -80,7 +84,6 @@ class YoutubeNotifyService(
 
         try {
             telegram.sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
-                    .executeChecked()
         } catch (e: TelegramClientException) {
             logger.warn("Failed to send notification to chat {}", chatId, e)
         }
@@ -100,7 +103,8 @@ class YoutubeNotifyService(
             }
 
             if (title.contains("лекция", ignoreCase = true)
-                    || title.contains("lect", ignoreCase = true)) {
+                || title.contains("lect", ignoreCase = true)
+            ) {
                 add(name + "_Л")
             }
         }

@@ -1,11 +1,13 @@
 package ru.darkkeks.telegram.hseremind
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.*
 import ru.darkkeks.telegram.core.createLogger
+import ru.darkkeks.telegram.core.fromJson
 
 @Component
 class HseRemindUpdateHandler(
@@ -35,7 +37,7 @@ class HseRemindUpdateHandler(
                         telegram.sendMessage(message.chat.id, """
                             Не получилось импортировать файлик. 😕 Напиши @darkkeks
                             $e
-                        """.trimIndent()).executeChecked()
+                        """.trimIndent())
                     }
                     return
                 }
@@ -70,12 +72,12 @@ class HseRemindUpdateHandler(
     private fun import(message: Message) {
         telegram.sendMessage(message.chat.id, """
             Скинь конфиг файликом. Пример конфига <a href="$exampleConfig">тут</a>.
-        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true).executeChecked()
+        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
     }
 
     private fun importDocument(chatId: Long, document: Document) {
         val fileId = document.fileId
-        val file = telegram.getFile(fileId).executeChecked()
+        val file = telegram.getFile(fileId)
 
         val size = file.fileSize
         if (size == null) {
@@ -88,7 +90,7 @@ class HseRemindUpdateHandler(
             telegram.sendMessage(chatId, """
                     Какой-то большой файлик (`${kb}kb > 1mb`) 🤔
                     Это точно конфиг?
-                """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2).executeChecked()
+                """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2)
             return
         }
 
@@ -96,7 +98,7 @@ class HseRemindUpdateHandler(
         if (path == null) {
             telegram.sendMessage(chatId, """
                     Почему-то у файла нету `file_path`. Напиши @darkkeks, или попробуй перезалить конфиг.
-                """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2).executeChecked()
+                """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2)
             return
         }
 
@@ -112,12 +114,12 @@ class HseRemindUpdateHandler(
 
     private fun validateConfig(chatId: Long, content: String) {
         val config = try {
-            readMapper.readValue(content, UserSpec::class.java)
+            fromJson<UserSpec>(content)
         } catch (e: Exception) {
             telegram.sendMessage(chatId, """
                 Не получилось спарсить конфиг.
                 Возможно тебе поможет ошибка: $e
-            """.trimIndent()).executeChecked()
+            """.trimIndent())
             return
         }
 
@@ -125,7 +127,7 @@ class HseRemindUpdateHandler(
 
         telegram.sendMessage(chatId, """
             Успешно сохранил новый конфиг! 👍
-        """.trimIndent()).executeChecked()
+        """.trimIndent())
     }
 
     private fun export(chatId: Long, format: String?) {
@@ -137,7 +139,7 @@ class HseRemindUpdateHandler(
 
         if (mapper == null || mimeType == null) {
             telegram.sendMessage(chatId, """Я не умею экспортировать в формат `$format` 😟""",
-                    parseMode = ParseMode.MARKDOWN_V2).executeTelegram()
+                    parseMode = ParseMode.MARKDOWN_V2)
             return
         }
 
@@ -146,7 +148,7 @@ class HseRemindUpdateHandler(
             telegram.sendMessage(chatId, """
                 Похоже у тебя еще нету конфига.
                 Ты можешь создать его по примеру <a href="$exampleConfig">отсюда</a>, а потом импортировать с помощью <b>/import</>. 😉
-            """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true).executeTelegram()
+            """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
             return
         }
 
@@ -160,7 +162,7 @@ class HseRemindUpdateHandler(
             telegram.sendMessage(chatId, """
                 Странно, не получилось экспортировать конфиг. 🤯
                 Напиши пожалуйста @darkkeks. Твой репорт поможет найти проблему сразу, а не через inf дней.
-            """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2).executeTelegram()
+            """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2)
             return
         }
 
@@ -169,13 +171,13 @@ class HseRemindUpdateHandler(
                     RequestBody.create(MediaType.parse(mimeType), content))
             telegram.sendDocument(document, chatId, caption = """
                 Держи!
-            """.trimIndent()).executeChecked()
+            """.trimIndent())
         } catch (e: Exception) {
             logger.error("Cant send exported config for user {}, config:" , chatId, content, e)
             telegram.sendMessage(chatId, """
                 Странно, не получилось отправить файл с конфигом. 🤯
                 Напиши пожалуйста @darkkeks. Твой репорт поможет найти проблему сразу, а не через inf дней.
-            """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2).executeTelegram()
+            """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2)
         }
     }
 
@@ -193,10 +195,10 @@ class HseRemindUpdateHandler(
             <b>/export</b> [json/yaml] — получить текущий конфиг. Формат по умолчанию — yaml.
             <b>/import</b> — Импортировать конфиг. Формат всегда yaml, так как json — это подмножество yaml.
             <b>/start</b>, <b>/help</b> — это сообщение.
-        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true).executeChecked()
+        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
     }
 
     fun cantProcess(chatId: Long) {
-        telegram.sendMessage(chatId, """Не понимаю 😧""").executeChecked()
+        telegram.sendMessage(chatId, """Не понимаю 😧""")
     }
 }

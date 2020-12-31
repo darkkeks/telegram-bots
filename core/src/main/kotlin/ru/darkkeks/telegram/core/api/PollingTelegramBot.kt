@@ -36,7 +36,7 @@ class PollingTelegramBot(private val client: Telegram,
         val timeout = 5
 
         val updates = try {
-            client.getUpdates(offset, limit, timeout).executeChecked()
+            client.getUpdates(offset, limit, timeout)
         } catch (e: TelegramClientException) {
             logger.error("Failed to fetch updates (offset = {}, limit = {}, timeout = {})", offset, limit, timeout, e)
             return

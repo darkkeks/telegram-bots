@@ -2,7 +2,8 @@ package ru.darkkeks.telegram.hseremind.ruz
 
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.createLogger
-import ru.darkkeks.telegram.hseremind.*
+import ru.darkkeks.telegram.hseremind.AbstractSourceFetchService
+import ru.darkkeks.telegram.hseremind.SourceFetchService
 import java.time.ZonedDateTime
 import kotlin.reflect.KClass
 
@@ -41,9 +42,11 @@ class RuzSourceFetchService(val ruzApi: RuzApi) : AbstractSourceFetchService<Ruz
 
         logger.info("Fetching schedule for source {} with id {} and date {}", source, id, formattedDate)
 
-        val request = ruzApi.schedule(type, id,
-                start = today.format(RuzUtils.dateFormatter),
-                finish = today.format(RuzUtils.dateFormatter))
+        val request = ruzApi.schedule(
+            type, id,
+            start = today.format(RuzUtils.dateFormatter),
+            finish = today.format(RuzUtils.dateFormatter)
+        )
 
         val response = try {
             request.execute()

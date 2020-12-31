@@ -1,76 +1,113 @@
 package ru.darkkeks.telegram.core.api
 
 import okhttp3.MultipartBody
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.http.*
+import org.springframework.stereotype.Component
 
-interface Telegram {
+@Component
+class Telegram(
+    val telegramApi: TelegramApi
+) {
 
-    @GET("getMe")
-    fun getMe(): Call<TelegramResponse<User>>
+    fun getMe() = telegramApi.getMe().executeChecked()
 
-    @GET("sendMessage")
     fun sendMessage(
-            @Query("chat_id") chatId: Long,
-            @Query("text") text: String,
-            @Query("parse_mode") parseMode: ParseMode? = null,
-            @Query("disable_web_page_preview") disableWebPagePreview: Boolean? = null,
-            @Query("disable_notification") disableNotification: Boolean? = null,
-            @Query("reply_to_message_id") replyToMessageId: Boolean? = null,
-            @Query("reply_markup") replyMarkup: Markup? = null
-    ) : Call<TelegramResponse<Message>>
+        chatId: Long,
+        text: String,
+        parseMode: ParseMode? = null,
+        disableWebPagePreview: Boolean? = null,
+        disableNotification: Boolean? = null,
+        replyToMessageId: Int? = null,
+        replyMarkup: Markup? = null
+    ) = telegramApi.sendMessage(
+        SendMessageRequest(
+            chatId = chatId,
+            text = text,
+            parseMode = parseMode,
+            disableNotification = disableNotification,
+            disableWebPagePreview = disableWebPagePreview,
+            replyToMessageId = replyToMessageId,
+            replyMarkup = replyMarkup
+        )
+    ).executeChecked()
 
-    @Multipart
-    @POST("sendDocument")
-    fun sendDocument(
-            @Part document: MultipartBody.Part,
-            @Query("chat_id") chatId: Long,
-            @Query("thumb") thumb: String? = null,
-            @Query("caption") caption: String? = null,
-            @Query("parse_mode") parseMode: ParseMode? = null,
-            @Query("disable_notification") disableNotification: Boolean? = null,
-            @Query("reply_to_message_id") replyToMessageId: Boolean? = null,
-            @Query("reply_markup") replyMarkup: Markup? = null
-    ) : Call<TelegramResponse<Message>>
-
-    @GET("sendChatAction")
     fun sendChatAction(
-            @Query("chat_id") chatId: Int,
-            @Query("action") action: ChatAction
-    ) : Call<TelegramResponse<Boolean>>
+        chatId: Long,
+        action: ChatAction
+    ) = telegramApi.sendChatAction(
+        SendChatActionRequest(
+            chatId = chatId,
+            action = action
+        )
+    ).executeChecked()
 
-    @GET("answerCallbackQuery")
     fun answerCallbackQuery(
-            @Query("callback_query_id") callbackQueryId: String,
-            @Query("text") text: String? = null,
-            @Query("show_alert") showAlert: Boolean? = null,
-            @Query("url") url: String? = null,
-            @Query("cache_time") cacheTime: Int? = null
-    ) : Call<TelegramResponse<Boolean>>
+        callbackQueryId: String,
+        text: String? = null,
+        showAlert: Boolean? = null,
+        url: String? = null,
+        cacheTime: Int? = null
+    ) = telegramApi.answerCallbackQuery(
+        AnswerCallbackQueryRequest(
+            callbackQueryId = callbackQueryId,
+            text = text,
+            showAlert = showAlert,
+            url = url,
+            cacheTime = cacheTime
+        )
+    ).executeChecked()
 
-    @GET("editMessageText")
     fun editMessageText(
-            @Query("chat_id") chatId: Long? = null,
-            @Query("message_id") messageId: Int? = null,
-            @Query("text") text: String,
-            @Query("inline_message_id") inlineMessageId: String? = null,
-            @Query("parse_mode") parseMode: ParseMode? = null,
-            @Query("disable_web_page_preview") disableWebPagePreview: Boolean? = null,
-            @Query("reply_markup") replyMarkup: InlineKeyboardMarkup? = null
-    ) : Call<Void>
+        chatId: Long? = null,
+        messageId: Int? = null,
+        text: String,
+        inlineMessageId: String? = null,
+        parseMode: ParseMode? = null,
+        disableWebPagePreview: Boolean? = null,
+        replyMarkup: InlineKeyboardMarkup? = null
+    ) = telegramApi.editMessageText(
+        EditMessageTextRequest(
+            chatId = chatId,
+            messageId = messageId,
+            text = text,
+            inlineMessageId = inlineMessageId,
+            parseMode = parseMode,
+            disableWebPagePreview = disableWebPagePreview,
+            replyMarkup = replyMarkup
+        )
+    ).executeChecked()
 
-    @GET("getUpdates")
     fun getUpdates(
-            @Query("offset") offset: Int? = null,
-            @Query("limit") limit: Int? = null,
-            @Query("timeout") timeout: Int? = null,
-            @Query("allowed_updates") allowedUpdates: List<String>? = null
-    ) : Call<TelegramResponse<List<Update>>>
+        offset: Int? = null,
+        limit: Int? = null,
+        timeout: Int? = null,
+        allowedUpdates: List<String>? = null
+    ) = telegramApi.getUpdates(
+        GetUpdatesRequest(
+            offset = offset,
+            limit = limit,
+            timeout = timeout,
+            allowedUpdates = allowedUpdates
+        )
+    ).executeChecked()
 
-    @GET("getFile")
     fun getFile(
-            @Query("file_id") fileId: String
-    ) : Call<TelegramResponse<File>>
+        fileId: String
+    ) = telegramApi.getFile(
+        GetFileRequest(
+            fileId = fileId
+        )
+    ).executeChecked()
 
+    fun sendDocument(
+        document: MultipartBody.Part,
+        chatId: Long,
+        thumb: String? = null,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        disableNotification: Boolean? = null,
+        replyToMessageId: Boolean? = null,
+        replyMarkup: Markup? = null
+    ) = telegramApi.sendDocument(
+        document, chatId, thumb, caption, parseMode, disableNotification, replyToMessageId, replyMarkup
+    ).executeChecked()
 }
