@@ -85,4 +85,7 @@ chats:
       - source:
           name: 'МА2'
           playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
+      - source:
+          name: 'ОМВ'
+          playlist: 'PLEwK9wdS5g0ouOxtCkrw9_niJ5IW9zm0G'
 version: 1
