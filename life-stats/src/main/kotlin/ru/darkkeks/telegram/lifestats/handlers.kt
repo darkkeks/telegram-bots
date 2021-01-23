@@ -22,5 +22,13 @@ class HandlerListBuilder {
         handlers.add(handler)
     }
 
+    fun fallback(block: (MessageContext) -> Unit) {
+        val handler = object : MessageHandler {
+            override fun matches(context: MessageContext) = true
+            override fun handle(context: MessageContext) = block(context)
+        }
+        handlers.add(handler)
+    }
+
 }
 

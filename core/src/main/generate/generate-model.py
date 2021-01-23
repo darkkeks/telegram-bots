@@ -59,6 +59,7 @@ CUSTOM_TYPES = {
     },
 }
 
+
 def to_camel_case(name):
     items = name.split('_')
 

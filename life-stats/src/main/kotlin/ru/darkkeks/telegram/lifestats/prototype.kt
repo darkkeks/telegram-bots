@@ -15,6 +15,7 @@ class RoutingMessageHandler(
     private val logger = createLogger<RoutingMessageHandler>()
 
     override fun handle(update: Update) {
+        logger.info("Received update: {}", toJsonPretty(update))
         when {
             update.message != null -> {
                 val message = update.message!!
