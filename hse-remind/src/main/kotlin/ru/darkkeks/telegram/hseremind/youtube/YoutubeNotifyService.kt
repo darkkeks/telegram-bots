@@ -74,7 +74,10 @@ class YoutubeNotifyService(
         return items
     }
 
-    private fun sendNotification(name: String, chatId: Long, video: Video, playlistSource: PlaylistSource) {
+    /**
+     * @return `true` on success
+     */
+    private fun sendNotification(name: String, chatId: Long, video: Video, playlistSource: PlaylistSource): Boolean {
         val items = video.title.split(""",\s*""".toRegex()).joinToString("\n")
         var text = items + "\n"
         text += "https://youtube.com/watch?v=${video.id}&list=${playlistSource.playlist}\n"
@@ -82,25 +85,35 @@ class YoutubeNotifyService(
 
         logger.info("Sending notification:\n{}", text)
 
-        try {
+        return try {
             telegram.sendMessage(chatId, text, parseMode = ParseMode.HTML, disableWebPagePreview = true)
+            true
         } catch (e: TelegramClientException) {
             logger.warn("Failed to send notification to chat {}", chatId, e)
+            false
+        } finally {
+            Thread.sleep(4000)
         }
-
-        Thread.sleep(4000)
     }
 
     private fun extractTags(name: String, title: String): List<String> {
         val tags = buildList {
             add(name)
 
-            val groupRegex = """19\d{1,2}""".toRegex()
-            val match = groupRegex.find(title)
-            if (match != null) {
-                add("Г" + match.value)
-                add(name + "_" + match.value)
+            fun tryGroupRegex(regex: Regex): Boolean {
+                val match = regex.find(title)
+                if (match != null) {
+                    add("Г" + match.groupValues[1])
+                    add(name + "_" + match.groupValues[1])
+                    return true
+                }
+                return false
             }
+
+            listOf(
+                """(19\d{1,2})""".toRegex(),
+                """группа (\d)""".toRegex()
+            ).firstOrNull { tryGroupRegex(it) }
 
             if (title.contains("лекция", ignoreCase = true)
                 || title.contains("lect", ignoreCase = true)

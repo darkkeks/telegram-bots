@@ -85,4 +85,24 @@ chats:
       - source:
           name: 'МА2'
           playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
+      - source:
+          name: 'ОМВ'
+          playlist: 'PLEwK9wdS5g0ouOxtCkrw9_niJ5IW9zm0G'
+      # - source:
+      #     name: 'ОМВ'
+      #     # группа 1
+      #     playlist: ''
+      - source:
+          name: 'ОМВ'
+          # группа 2
+          playlist: 'PLEwK9wdS5g0pLVY8YXb7kRJLD26r1wQsR'
+      - source:
+          name: 'ОМВ'
+          # группа 3
+          playlist: 'PLEwK9wdS5g0qMOpvgu5WMMXyuQYCmqhQF'
+      - source:
+          name: 'ОМВ'
+          # группа 4
+          playlist: 'PLEwK9wdS5g0pu6sFaw5xCq1TmwxZtSEZC'      
+
 version: 1

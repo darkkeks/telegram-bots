@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeRequestInitializer
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,44 +18,14 @@ import ru.darkkeks.telegram.core.TelegramBotsConfiguration
 import ru.darkkeks.telegram.core.api.PollingTelegramBot
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.TelegramFiles
-import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.core.objectMapper
 import ru.darkkeks.telegram.hseremind.ruz.RuzApi
-import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 
 
 @Configuration
 @Import(TelegramBotsConfiguration::class)
 class HseRemindConfiguration {
-
-    @Bean
-    fun scheduledExecutorService(): ScheduledExecutorService = Executors.newScheduledThreadPool(4)
-
-    @Bean
-    fun okHttpClient(): OkHttpClient {
-        val logger = createLogger<Retrofit>()
-        val interceptor = HttpLoggingInterceptor { message -> logger.info(message) }
-
-        interceptor.level = HttpLoggingInterceptor.Level.BASIC
-        return OkHttpClient.Builder()
-//                .addInterceptor(interceptor)
-            .build()
-    }
-
-    @Bean
-    fun telegram(
-        okHttpClient: OkHttpClient,
-        @Value("\${telegram.base_url}") baseUrl: String,
-        @Value("\${telegram.token}") telegramToken: String
-    ): Telegram {
-        return Retrofit.Builder()
-            .baseUrl("$baseUrl$telegramToken/")
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-            .client(okHttpClient)
-            .build()
-            .create(Telegram::class.java)
-    }
 
     @Bean
     fun telegramFiles(

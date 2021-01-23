@@ -114,7 +114,7 @@ class HseRemindUpdateHandler(
 
     private fun validateConfig(chatId: Long, content: String) {
         val config = try {
-            fromJson<UserSpec>(content)
+            fromJson<UserSpec>(content, readMapper)
         } catch (e: Exception) {
             telegram.sendMessage(chatId, """
                 Не получилось спарсить конфиг.
