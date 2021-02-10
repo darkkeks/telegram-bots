@@ -1,0 +1,19 @@
+---
+# Default profile is dev
+spring.profiles.active: dev
+
+spring:
+  jooq:
+    sql-dialect: Postgres
+
+  datasource:
+    url: jdbc:postgresql://postgres/kks
+    username: postgres
+    password: root
+
+---
+spring.profiles: dev
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/kks

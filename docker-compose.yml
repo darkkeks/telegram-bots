@@ -13,9 +13,29 @@ services:
 
   mongo:
     image: mongo:latest
-    restart: always
+    restart: unless-stopped
     volumes:
       - mongo-data:/data/db
 
+  kks-stat:
+    build:
+      context: .
+      dockerfile: ./kks-stat/deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - VIRTUAL_HOST=kks.darkkeks.me
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kks
+      POSTGRES_PASSWORD: root
+      PGDATA: /data/postgres
+    volumes:
+      - postgres-data:/data/postgres
+
 volumes:
   mongo-data:
+  postgres-data:
