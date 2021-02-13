@@ -31,6 +31,8 @@ class KksStatController(
 ) {
     val logger = createLogger<KksStatController>()
 
+    val emptyScore = TaskScore(null, "Not submitted")
+
     @GetMapping("/get")
     fun getStandings(): StandingsResponse {
         return StandingsResponse(getMergedStandings())
@@ -44,18 +46,28 @@ class KksStatController(
         if (groups.isEmpty()) {
             return Standings(listOf(), listOf())
         }
+
+        val tasks = groups
+            .maxBy { it.standings.tasks.size }
+            ?.standings?.tasks!!
+
         val mergedRows = groups
             .flatMap { it.standings.rows }
             .sortedWith(compareBy(
                 { -it.score },
                 { it.user }
             ))
+            .map { row ->
+                // task count can differ because group standings are outdated
+                val additionalCount = tasks.size - row.tasks.size
+                row.copy(tasks = row.tasks + List(additionalCount) { emptyScore })
+            }
             .mapIndexed { index, row ->
                 row.copy(place = (index + 1).toString(), isSelf = false)
             }
 
         return Standings(
-            tasks = groups.first().standings.tasks,
+            tasks = tasks,
             rows = mergedRows
         )
     }
