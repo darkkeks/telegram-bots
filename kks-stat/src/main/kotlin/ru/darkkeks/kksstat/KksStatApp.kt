@@ -40,10 +40,7 @@ class KksStatController(
     }
 
     fun getMergedStandings(): Standings {
-        val all = standingsRepository.find()
-        val groups = all
-            .sortedByDescending { it.submitTime }
-            .distinctBy { it.contestId }
+        val groups = standingsRepository.findLatest()
         if (groups.isEmpty()) {
             return Standings(listOf(), listOf())
         }
@@ -107,10 +104,12 @@ class StandingsRepository(
             .execute()
     }
 
-    fun find(): List<SubmissionRecord> {
+    fun findLatest(): List<SubmissionRecord> {
         return create
             .select(SUBMISSIONS.LOGIN, SUBMISSIONS.CONTEST_ID, SUBMISSIONS.STANDINGS, SUBMISSIONS.SUBMIT_TIME)
+            .distinctOn(SUBMISSIONS.CONTEST_ID)
             .from(SUBMISSIONS)
+            .orderBy(SUBMISSIONS.CONTEST_ID, SUBMISSIONS.SUBMIT_TIME.desc())
             .fetch { record ->
                 SubmissionRecord(
                     login = record[SUBMISSIONS.LOGIN],
