@@ -7,6 +7,7 @@ import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -52,7 +53,11 @@ class KksStatController(
             ?.standings?.tasks!!
 
         val mergedRows = groups
-            .flatMap { it.standings.rows }
+            .flatMap { group ->
+                group.standings.rows.map { row ->
+                    row.copy(contestId = group.contestId)
+                }
+            }
             .sortedWith(compareBy(
                 { -it.score },
                 { it.user }
@@ -73,16 +78,16 @@ class KksStatController(
     }
 
     @PostMapping("/send")
-    fun postGroupStandings(@RequestBody groupStandings: GroupStandings) {
+    fun postGroupStandings(@RequestBody groupStandings: GroupStandings): ResponseEntity<String> {
         logger.info("Received standings from user {}, contest id {}", groupStandings.login, groupStandings.contestId)
-        val contestId = groupStandings.contestId?.toIntOrNull() ?: 0
         val submissionRecord = SubmissionRecord(
-            login = groupStandings.login ?: "",
-            contestId = contestId,
+            login = groupStandings.login,
+            contestId = groupStandings.contestId,
             standings = groupStandings.standings,
             submitTime = LocalDateTime.now()
         )
         standingsRepository.save(submissionRecord)
+        return ResponseEntity.ok("Ok")
     }
 }
 
@@ -130,8 +135,8 @@ data class StandingsResponse(
 
 data class GroupStandings(
     @JsonProperty("contest_id")
-    val contestId: String?,
-    val login: String?,
+    val contestId: Int,
+    val login: String,
     val standings: Standings
 )
 
@@ -148,6 +153,8 @@ data class TaskInfo(
 data class StandingsRow(
     val place: String,
     val user: String,
+    @JsonProperty("contest_id")
+    val contestId: Int,
     val tasks: List<TaskScore>,
     val solved: Int,
     val score: Int,
