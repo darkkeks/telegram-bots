@@ -45,31 +45,32 @@ class KksStatController(
             return Standings(listOf(), listOf())
         }
 
-        val tasks = groups
-            .maxBy { it.standings.tasks.size }
-            ?.standings?.tasks!!
+        val allTasks = groups
+            .map { it.standings.tasks }
+            .maxBy { it.size }!!
 
         val mergedRows = groups
             .flatMap { group ->
-                group.standings.rows.map { row ->
-                    row.copy(contestId = group.contestId)
-                }
+                group.standings.rows
+                    // enrich rows with group contest id
+                    .map { row -> row.copy(contestId = group.contestId) }
+                    // fill missing contest
+                    .map { row ->
+                        val scoresByTask = group.standings.tasks.zip(row.tasks).toMap()
+                        val tasks = allTasks.map { task -> scoresByTask[task] ?: emptyScore }
+                        row.copy(tasks = tasks)
+                    }
             }
             .sortedWith(compareBy(
                 { -it.score },
                 { it.user }
             ))
-            .map { row ->
-                // task count can differ because group standings are outdated
-                val additionalCount = tasks.size - row.tasks.size
-                row.copy(tasks = row.tasks + List(additionalCount) { emptyScore })
-            }
             .mapIndexed { index, row ->
                 row.copy(place = (index + 1).toString(), isSelf = false)
             }
 
         return Standings(
-            tasks = tasks,
+            tasks = allTasks,
             rows = mergedRows
         )
     }
