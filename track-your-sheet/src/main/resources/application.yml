@@ -1,0 +1,9 @@
+telegram:
+  base_url: 'https://api.telegram.org/bot'
+  token: '<REDACTED>'
+
+spring:
+  datasource:
+    url: 'jdbc:postgresql://localhost/tys'
+    password: 'password'
+    username: 'postgres'
