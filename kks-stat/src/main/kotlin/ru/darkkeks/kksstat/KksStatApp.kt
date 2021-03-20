@@ -39,6 +39,42 @@ class KksStatController(
         return StandingsResponse(getMergedStandings())
     }
 
+    @GetMapping("/get/flat")
+    fun getFlatStandings(): FlatStandingsResponse {
+        val standings = getMergedStandings()
+        return FlatStandingsResponse(flattenStandings(standings))
+    }
+
+    fun flattenStandings(standings: Standings): FlatStandings {
+        val statuses = standings.rows
+            .flatMap { it.tasks }
+            .map { it.status }
+            .distinct()
+            .withIndex()
+            .map { (index, value) -> index to value }
+            .toMap()
+        val indexByStatus = statuses
+            .map { (index, value) -> value to index }
+            .toMap()
+        return FlatStandings(
+            tasks = standings.tasks,
+            rows = standings.rows.map { row ->
+                FlatStandingsRow(
+                    place = row.place,
+                    user = row.user,
+                    contestId = row.contestId,
+                    solved = row.solved,
+                    score = row.score,
+                    isSelf = row.isSelf,
+                    scores = row.tasks.map { task -> task.score?.toIntOrNull() },
+                    statuses = row.tasks.map { task -> indexByStatus[task.status]!! }
+                )
+            },
+            statuses = statuses
+        )
+
+    }
+
     fun getMergedStandings(): Standings {
         val groups = standingsRepository.findLatest()
         if (groups.isEmpty()) {
@@ -165,4 +201,27 @@ data class StandingsRow(
 data class TaskScore(
     val score: String?,
     val status: String
+)
+
+data class FlatStandingsResponse(
+    val standings: FlatStandings
+)
+
+data class FlatStandings(
+    val tasks: List<TaskInfo>,
+    val rows: List<FlatStandingsRow>,
+    val statuses: Map<Int, String>
+)
+
+data class FlatStandingsRow(
+    val place: String,
+    val user: String,
+    @JsonProperty("contest_id")
+    val contestId: Int,
+    val solved: Int,
+    val score: Int,
+    @JsonProperty("is_self")
+    val isSelf: Boolean,
+    val scores: List<Int?>,
+    val statuses: List<Int>
 )
