@@ -8,7 +8,7 @@ chats:
     #   group: 123123
     #   me: true
     target:
-      channel: -1001477647138
+      channel: -1001288233266
 
     # Список правил. Правило -- это комбинация "откуда брать лекции" и "чем их фильтровать"
     lecture_rules:
@@ -20,54 +20,16 @@ chats:
 
         # Все лекции перед уведомлением проходят через фильтр
         # Фильтры очень гибкие, но возможно чуть сложны для понимания
-        # В примере ниже приходит уведомление о всех лекциях, кроме лекций по средам
+        # В примере ниже приходит уведомление о всех лекциях, кроме лекций по средам и англа
         filter:
           none_of:
             - week_days:
                 - 3
-
-  - name: "Личка"
-    target:
-      me: true
-    lecture_rules:
-      - source:
-          group: "БПМИ193"
-
-        # Все лекции группы 193, кроме
-        # - лекций по средам
-        # - не моих семов по алгосам
-        # - семов по матану
-        # - семов по твимс
-        filter:
-          none_of:
-            - week_days:
-                - 3
-            - all_of:
-                - lecture_type: "Семинар"
-                - lecture_name: ".*Математический анализ.*"
-            - all_of:
-                - lecture_type: "Семинар"
-                - lecture_name: ".*Теория вероятностей.*"
-      - source:
-          group: "БПМИ195"
-
-        # Семы по матану и твимс группы 195
-        filter:
-          all_of:
-            - lecture_type: "Семинар"
-            - any_of:
-                - lecture_name: ".*Математический анализ.*"
-                - lecture_name: ".*Теория вероятностей.*"
-
-      - source:
-          lecturer: "Новиков Борис Асенович"
-        filter:
-          lecture_name: '.*Технологии баз данных.*'
-
+            - lecture_name: '.*Англ.*'
 
   - name: "Лекции"
     target:
-      channel: -1001240134828
+      channel: -1001459653369
 
     # Брать видео из плейлистов ютаба
     youtube_rules:
@@ -86,12 +48,18 @@ chats:
           name: 'МА2'
           playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
       - source:
+          name: 'АКОС'
+          playlist: 'PLEwK9wdS5g0qaFRRs8pcO3NT5W2IgPBfb'
+      - source:
+          name: 'АКОС'
+          playlist: 'PLckDP3jNUDU7GH2aC2lIAilmo8k2RyWxv'
+      - source:
           name: 'ОМВ'
           playlist: 'PLEwK9wdS5g0ouOxtCkrw9_niJ5IW9zm0G'
-      # - source:
-      #     name: 'ОМВ'
-      #     # группа 1
-      #     playlist: ''
+      - source:
+          name: 'ОМВ'
+          # группа 1
+          playlist: 'PLEwK9wdS5g0oDs3nzKKdGVbErbqU944VB'
       - source:
           name: 'ОМВ'
           # группа 2
@@ -104,5 +72,4 @@ chats:
           name: 'ОМВ'
           # группа 4
           playlist: 'PLEwK9wdS5g0pu6sFaw5xCq1TmwxZtSEZC'      
-
 version: 1
