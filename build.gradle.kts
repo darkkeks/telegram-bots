@@ -16,6 +16,7 @@ allprojects {
             freeCompilerArgs = listOf("-Xjsr305=strict")
             freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalStdlibApi")
             jvmTarget = "1.8"
+            languageVersion = "1.4"
         }
     }
 

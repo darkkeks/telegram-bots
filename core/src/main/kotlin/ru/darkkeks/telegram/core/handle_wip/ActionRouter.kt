@@ -3,9 +3,9 @@ package ru.darkkeks.telegram.core.handle_wip
 import ru.darkkeks.telegram.core.serialize.Registry
 
 class ActionRouter(
-        private val messageStateRegistry: Registry<MessageState>,
-        private val buttonStateRegistry: Registry<ButtonState>,
-        private val handlers: List<Handler>
+    private val messageStateRegistry: Registry<MessageState>,
+    private val buttonStateRegistry: Registry<ButtonState>,
+    private val handlers: List<Handler>
 ) {
     fun handle(context: MessageContext<UserState>) {
         val handler = handlers

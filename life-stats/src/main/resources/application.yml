@@ -2,9 +2,18 @@
 # Default profile is dev
 spring.profiles.active: dev
 
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-lifestats/lifestats
+    username: postgres
+    password: root
+
 telegram:
   token: ${BOT_TOKEN}
 
 ---
 spring.profiles: dev
 
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/lifestats

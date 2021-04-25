@@ -19,7 +19,7 @@ services:
     ports:
       - 27017:27017
 
-  postgres:
+  postgres-kks:
     image: postgres:latest
     restart: unless-stopped
     environment:
@@ -27,10 +27,24 @@ services:
       POSTGRES_PASSWORD: root
       PGDATA: /data/postgres
     volumes:
-      - postgres-data:/data/postgres
+      - postgres-data-kks:/data/postgres
+    ports:
+      - 5432:5432
+
+  postgres-lifestats:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lifestats
+      POSTGRES_PASSWORD: root
+      PGDATA: /data/postgres
+    volumes:
+      - postgres-data-lifestats:/data/postgres
     ports:
       - 5432:5432
 
 volumes:
   mongo-data:
-  postgres-data:
+  postgres-data-kks:
+  postgres-data-lifestats:
+

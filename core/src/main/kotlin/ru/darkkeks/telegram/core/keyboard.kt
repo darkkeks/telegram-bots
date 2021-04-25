@@ -1,13 +1,23 @@
 package ru.darkkeks.telegram.core
 
 import ru.darkkeks.telegram.core.handle_wip.ButtonState
+import ru.darkkeks.telegram.core.handle_wip.ButtonWithText
 
-fun buildKeyboard(block: KeyboardBuilder.() -> Unit): List<List<ButtonState>> {
+fun buildKeyboard(block: KeyboardBuilder.() -> Unit): List<List<ButtonWithText>> {
     return KeyboardBuilder().also(block).build()
 }
 
 class KeyboardBuilder {
-    private val result: MutableList<MutableList<ButtonState>> = mutableListOf()
+    private val result: MutableList<MutableList<ButtonWithText>> = mutableListOf()
+
+    fun row(text: String, state: ButtonState) = row(ButtonWithText(text, state))
+
+    fun add(text: String, state: ButtonState) = add(ButtonWithText(text, state))
+
+    fun row(vararg buttons: ButtonWithText) {
+        row()
+        buttons.forEach { add(it) }
+    }
 
     fun row() {
         if (result.isNotEmpty() && result.last().isNotEmpty()) {
@@ -15,7 +25,7 @@ class KeyboardBuilder {
         }
     }
 
-    fun add(vararg buttons: ButtonState) {
+    fun add(vararg buttons: ButtonWithText) {
         if (result.isEmpty()) {
             result.add(mutableListOf())
         }
@@ -24,7 +34,7 @@ class KeyboardBuilder {
         }
     }
 
-    fun build(): List<List<ButtonState>> {
+    fun build(): List<List<ButtonWithText>> {
         return result
     }
 }

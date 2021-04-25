@@ -6,6 +6,12 @@ class Registry<T : BufferSerializable> {
     private val entries: MutableMap<Byte, RegistryEntry<out T>> = mutableMapOf()
     private val idByClass: MutableMap<KClass<out T>, Byte> = mutableMapOf()
 
+    fun <K : T> register(id: Byte, klass: KClass<K>, bufferDeserializer: (ButtonBuffer) -> K) {
+        register(id, klass, object : BufferDeserializer<K> {
+            override fun read(buffer: ButtonBuffer) = bufferDeserializer(buffer)
+        })
+    }
+
     fun <K : T> register(id: Byte, klass: KClass<K>, bufferDeserializer: BufferDeserializer<K>) {
         require(!entries.containsKey(id)) { "Item with id $id is already registered" }
         require(!idByClass.containsKey(klass)) { "Class $klass registered multiple times" }

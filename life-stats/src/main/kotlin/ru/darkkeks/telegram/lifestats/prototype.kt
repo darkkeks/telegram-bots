@@ -1,15 +1,26 @@
 package ru.darkkeks.telegram.lifestats
 
+import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.CallbackQuery
+import ru.darkkeks.telegram.core.api.InlineKeyboardButton
+import ru.darkkeks.telegram.core.api.InlineKeyboardMarkup
 import ru.darkkeks.telegram.core.api.Message
+import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.Update
 import ru.darkkeks.telegram.core.api.UpdateHandler
 import ru.darkkeks.telegram.core.createLogger
+import ru.darkkeks.telegram.core.handle_wip.ButtonState
+import ru.darkkeks.telegram.core.handle_wip.ButtonWithText
+import ru.darkkeks.telegram.core.handle_wip.serialize
+import ru.darkkeks.telegram.core.serialize.ButtonBuffer
+import ru.darkkeks.telegram.core.serialize.Registry
 import ru.darkkeks.telegram.core.toJsonPretty
 
 class RoutingMessageHandler(
+    private val telegram: Telegram,
     private val userDataProvider: UserDataProvider,
-    private val handlers: List<Handler>
+    private val buttonConverter: ButtonConverter,
+    private val handlers: List<Handler>,
 ) : UpdateHandler {
 
     private val logger = createLogger<RoutingMessageHandler>()
@@ -29,10 +40,67 @@ class RoutingMessageHandler(
                 if (handler != null) {
                     handler.handle(context)
                 } else {
-                    logger.warn("No matching handler for update! {}", toJsonPretty(update))
+                    logger.error("No matching handler for update! {}", toJsonPretty(update))
                 }
             }
+            update.callbackQuery != null -> {
+                val callbackQuery = update.callbackQuery!!
+                val message = callbackQuery.message ?: return  // TODO
+                val chat = message.chat
+                val user = callbackQuery.from
+                val userData = userDataProvider.findUser(user.id, chat.id) ?: return  // TODO
+                val data = callbackQuery.data ?: return  // TODO
+                val state = buttonConverter.deserialize(data)
+                val context = if (state != null) {
+                    CallbackButtonContext(message, userData, callbackQuery, state)
+                } else {
+                    CallbackContext(message, userData, callbackQuery)
+                }
+                val handler = handlers
+                    .filterIsInstance<CallbackHandler>()
+                    .firstOrNull { it.matches(context) }
+                if (handler != null) {
+                    handler.handle(context)
+                } else {
+                    logger.error("No matching handler for update! {}", toJsonPretty(update))
+                }
+                telegram.answerCallbackQuery(callbackQuery.id)
+            }
         }
+    }
+}
+
+@Component
+class ButtonConverter(
+    private val buttonStateRegistry: Registry<ButtonState>,
+) {
+    private val logger = createLogger<ButtonConverter>()
+
+    fun serialize(keyboard: List<List<ButtonWithText>>): InlineKeyboardMarkup {
+        return InlineKeyboardMarkup(
+            buildList {
+                for (row in keyboard) {
+                    add(buildList {
+                        for (button in row) {
+                            val id = buttonStateRegistry.getId(button.state)
+                            if (id == null) {
+                                logger.warn("Button ${button.state::class} is not registered!")
+                            }
+                            val buffer = button.state.serialize(id ?: -1)
+                            add(InlineKeyboardButton(
+                                text = button.text,
+                                callbackData = buffer,
+                            ))
+                        }
+                    })
+                }
+            }
+        )
+    }
+
+    fun deserialize(data: String): ButtonState? {
+        val buffer = ButtonBuffer(data)
+        return buttonStateRegistry.get(buffer)
     }
 }
 
@@ -46,16 +114,28 @@ interface UserDataProvider {
     fun findUser(id: Int, chatId: Long): UserData?
 }
 
-class MessageContext(
+open class Context(
     val message: Message,
-    val userData: UserData
+    val userData: UserData,
 )
 
-class CallbackContext(
-    val message: Message,
+class MessageContext(
+    message: Message,
+    userData: UserData,
+) : Context(message, userData)
+
+open class CallbackContext(
+    message: Message,
+    userData: UserData,
     val callbackQuery: CallbackQuery,
-    val userData: UserData
-)
+) : Context(message, userData)
+
+class CallbackButtonContext<out T : ButtonState>(
+    message: Message,
+    userData: UserData,
+    callbackQuery: CallbackQuery,
+    val state: T
+) : CallbackContext(message, userData, callbackQuery)
 
 interface HandlerFactory {
     fun handlers(): List<Handler>
