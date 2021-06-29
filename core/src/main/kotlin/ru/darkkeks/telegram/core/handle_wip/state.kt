@@ -14,6 +14,13 @@ abstract class ButtonState(
     override fun write(buffer: ButtonBuffer) = buffer.serializer()
 }
 
+abstract class TextButtonState(
+    val text: String,
+    serializer: ButtonBuffer.() -> Unit
+) : ButtonState(serializer) {
+    constructor(text: String) : this(text, {})
+}
+
 data class ButtonWithText(
     val text: String,
     val state: ButtonState,

@@ -83,7 +83,7 @@ class KksStatController(
 
         val allTasks = groups
             .map { it.standings.tasks }
-            .maxBy { it.size }!!
+            .maxByOrNull { it.size }!!
 
         val mergedRows = groups
             .flatMap { group ->

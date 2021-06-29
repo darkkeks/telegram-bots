@@ -7,27 +7,26 @@ import org.springframework.context.annotation.Import
 import ru.darkkeks.telegram.core.TelegramBotsConfiguration
 import ru.darkkeks.telegram.core.api.PollingTelegramBot
 import ru.darkkeks.telegram.core.api.Telegram
-import ru.darkkeks.telegram.core.handle_wip.ButtonState
-import ru.darkkeks.telegram.core.serialize.Registry
-import ru.darkkeks.telegram.core.serialize.popInt
-import ru.darkkeks.telegram.lifestats.handlers.EventClassButton
 import java.util.concurrent.ScheduledExecutorService
 
 @Configuration
 @ComponentScan
-@Import(TelegramBotsConfiguration::class)
+@Import(
+    TelegramBotsConfiguration::class,
+    ButtonConfiguration::class,
+)
 class LifeStatsConfiguration {
 
     @Bean
     fun updateHandler(
         telegram: Telegram,
-        lifeStatsUserDataProvider: LifeStatsUserDataProvider,
+        userDataProvider: UserDataProvider,
         buttonConverter: ButtonConverter,
         handlerFactories: List<HandlerFactory>,
     ): RoutingMessageHandler {
         return RoutingMessageHandler(
             telegram,
-            lifeStatsUserDataProvider,
+            userDataProvider,
             buttonConverter,
             handlerFactories.flatMap { it.handlers() },
         )
@@ -40,11 +39,6 @@ class LifeStatsConfiguration {
         messageHandler: RoutingMessageHandler,
     ): PollingTelegramBot {
         return PollingTelegramBot(telegram, executorService, messageHandler)
-    }
-
-    @Bean
-    fun buttonStateRegistry() = Registry<ButtonState>().apply {
-        register(0x01, EventClassButton::class) { EventClassButton(it.popInt()) }
     }
 
 }

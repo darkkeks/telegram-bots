@@ -2,6 +2,7 @@ package ru.darkkeks.telegram.core
 
 import ru.darkkeks.telegram.core.handle_wip.ButtonState
 import ru.darkkeks.telegram.core.handle_wip.ButtonWithText
+import ru.darkkeks.telegram.core.handle_wip.TextButtonState
 
 fun buildKeyboard(block: KeyboardBuilder.() -> Unit): List<List<ButtonWithText>> {
     return KeyboardBuilder().also(block).build()
@@ -23,6 +24,11 @@ class KeyboardBuilder {
         if (result.isNotEmpty() && result.last().isNotEmpty()) {
             result.add(mutableListOf())
         }
+    }
+
+    fun add(vararg buttons: TextButtonState) {
+        val buttonsWithText = buttons.map { ButtonWithText(it.text, it) }
+        add(*buttonsWithText.toTypedArray())
     }
 
     fun add(vararg buttons: ButtonWithText) {
