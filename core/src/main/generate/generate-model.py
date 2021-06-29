@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 from collections import defaultdict
 
 import requests
@@ -209,7 +211,9 @@ def process_type(typename, field_name, type_name, desc):
             raise Exception(f'Unknown type {typename}')
 
     if typename == 'Integer':
-        if '64 bit' in desc or field_name.lower().endswith('chatid'):
+        if '64 bit' in desc \
+                or '64-bit' in desc \
+                or field_name.lower().endswith('chatid'):
             typename = 'Long'
         else:
             typename = 'Int'

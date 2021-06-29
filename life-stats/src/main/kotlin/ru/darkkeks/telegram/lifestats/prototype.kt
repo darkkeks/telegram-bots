@@ -151,7 +151,7 @@ fun UserData.updateState(state: String, data: Map<String, Any?>): UserData {
 }
 
 interface UserDataProvider {
-    fun findUser(id: Int, chatId: Long): UserData?
+    fun findUser(id: Long, chatId: Long): UserData?
 }
 
 open class Context(

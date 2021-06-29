@@ -33,8 +33,7 @@ class UserService(
         ))
     }
 
-    override fun findUser(id: Int, chatId: Long): UserData? {
-        val uid = id.toLong()
+    override fun findUser(uid: Long, chatId: Long): UserData? {
         if (uid != chatId) {
             return null
         }

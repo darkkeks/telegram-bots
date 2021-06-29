@@ -74,7 +74,19 @@ data class Update(
      *  A user changed their answer in a non-anonymous poll. Bots receive new votes only in polls that were sent by the
      *  bot itself.
      */
-    val pollAnswer: PollAnswer? = null
+    val pollAnswer: PollAnswer? = null,
+
+    /**
+     *  The bot's chat member status was updated in a chat. For private chats, this update is received only when the
+     *  bot is blocked or unblocked by the user.
+     */
+    val myChatMember: ChatMemberUpdated? = null,
+
+    /**
+     *  A chat member's status was updated in a chat. The bot must be an administrator in the chat and must explicitly
+     *  specify “chat_member” in the list of allowed_updates to receive these updates.
+     */
+    val chatMember: ChatMemberUpdated? = null
 )
 
 
@@ -106,8 +118,8 @@ data class GetUpdatesRequest(
     /**
      *  A JSON-serialized list of the update types you want your bot to receive. For example, specify [“message”,
      *  “edited_channel_post”, “callback_query”] to only receive updates of these types. See Update for a complete list
-     *  of available update types. Specify an empty list to receive all updates regardless of type (default). If not
-     *  specified, the previous setting will be used.Please note that this parameter doesn't affect updates created
+     *  of available update types. Specify an empty list to receive all update types except chat_member (default). If
+     *  not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created
      *  before the call to the getUpdates, so unwanted updates may be received for a short period of time.
      */
     val allowedUpdates: List<String>? = null
@@ -151,8 +163,8 @@ data class SetWebhookRequest(
     /**
      *  A JSON-serialized list of the update types you want your bot to receive. For example, specify [“message”,
      *  “edited_channel_post”, “callback_query”] to only receive updates of these types. See Update for a complete list
-     *  of available update types. Specify an empty list to receive all updates regardless of type (default). If not
-     *  specified, the previous setting will be used.Please note that this parameter doesn't affect updates created
+     *  of available update types. Specify an empty list to receive all update types except chat_member (default). If
+     *  not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created
      *  before the call to the setWebhook, so unwanted updates may be received for a short period of time.
      */
     val allowedUpdates: List<String>? = null,
@@ -225,7 +237,7 @@ data class WebhookInfo(
     val maxConnections: Int? = null,
 
     /**
-     *  A list of update types the bot is subscribed to. Defaults to all update types
+     *  A list of update types the bot is subscribed to. Defaults to all update types except chat_member
      */
     val allowedUpdates: List<String>? = null
 )
@@ -237,9 +249,11 @@ data class WebhookInfo(
 data class User(
 
     /**
-     *  Unique identifier for this user or bot
+     *  Unique identifier for this user or bot. This number may have more than 32 significant bits and some programming
+     *  languages may have difficulty/silent defects in interpreting it. But it has at most 52 significant bits, so a
+     *  64-bit integer or double-precision float type are safe for storing this identifier.
      */
-    val id: Int,
+    val id: Long,
 
     /**
      *  True, if this user is a bot
@@ -289,9 +303,9 @@ data class User(
 data class Chat(
 
     /**
-     *  Unique identifier for this chat. This number may be greater than 32 bits and some programming languages may
-     *  have difficulty/silent defects in interpreting it. But it is smaller than 52 bits, so a signed 64 bit integer
-     *  or double-precision float type are safe for storing this identifier.
+     *  Unique identifier for this chat. This number may have more than 32 significant bits and some programming
+     *  languages may have difficulty/silent defects in interpreting it. But it has at most 52 significant bits, so a
+     *  signed 64-bit integer or double-precision float type are safe for storing this identifier.
      */
     val id: Long,
 
@@ -336,8 +350,7 @@ data class Chat(
     val description: String? = null,
 
     /**
-     *  Chat invite link, for groups, supergroups and channel chats. Each administrator in a chat generates their own
-     *  invite links, so the bot must first generate the link using exportChatInviteLink. Returned only in getChat.
+     *  Primary invite link, for groups, supergroups and channel chats. Returned only in getChat.
      */
     val inviteLink: String? = null,
 
@@ -356,6 +369,12 @@ data class Chat(
      *  Returned only in getChat.
      */
     val slowModeDelay: Int? = null,
+
+    /**
+     *  The time after which all messages sent to the chat will be automatically deleted; in seconds. Returned only in
+     *  getChat.
+     */
+    val messageAutoDeleteTime: Int? = null,
 
     /**
      *  For supergroups, name of group sticker set. Returned only in getChat.
@@ -611,16 +630,23 @@ data class Message(
     val channelChatCreated: Boolean? = null,
 
     /**
-     *  The group has been migrated to a supergroup with the specified identifier. This number may be greater than 32
-     *  bits and some programming languages may have difficulty/silent defects in interpreting it. But it is smaller
-     *  than 52 bits, so a signed 64 bit integer or double-precision float type are safe for storing this identifier.
+     *  Service message: auto-delete timer settings changed in the chat
+     */
+    val messageAutoDeleteTimerChanged: MessageAutoDeleteTimerChanged? = null,
+
+    /**
+     *  The group has been migrated to a supergroup with the specified identifier. This number may have more than 32
+     *  significant bits and some programming languages may have difficulty/silent defects in interpreting it. But it
+     *  has at most 52 significant bits, so a signed 64-bit integer or double-precision float type are safe for storing
+     *  this identifier.
      */
     val migrateToChatId: Long? = null,
 
     /**
-     *  The supergroup has been migrated from a group with the specified identifier. This number may be greater than 32
-     *  bits and some programming languages may have difficulty/silent defects in interpreting it. But it is smaller
-     *  than 52 bits, so a signed 64 bit integer or double-precision float type are safe for storing this identifier.
+     *  The supergroup has been migrated from a group with the specified identifier. This number may have more than 32
+     *  significant bits and some programming languages may have difficulty/silent defects in interpreting it. But it
+     *  has at most 52 significant bits, so a signed 64-bit integer or double-precision float type are safe for storing
+     *  this identifier.
      */
     val migrateFromChatId: Long? = null,
 
@@ -654,6 +680,26 @@ data class Message(
      *  Service message. A user in the chat triggered another user's proximity alert while sharing Live Location.
      */
     val proximityAlertTriggered: ProximityAlertTriggered? = null,
+
+    /**
+     *  Service message: voice chat scheduled
+     */
+    val voiceChatScheduled: VoiceChatScheduled? = null,
+
+    /**
+     *  Service message: voice chat started
+     */
+    val voiceChatStarted: VoiceChatStarted? = null,
+
+    /**
+     *  Service message: voice chat ended
+     */
+    val voiceChatEnded: VoiceChatEnded? = null,
+
+    /**
+     *  Service message: new participants invited to a voice chat
+     */
+    val voiceChatParticipantsInvited: VoiceChatParticipantsInvited? = null,
 
     /**
      *  Inline keyboard attached to the message. login_url buttons are represented as ordinary url buttons.
@@ -1037,9 +1083,11 @@ data class Contact(
     val lastName: String? = null,
 
     /**
-     *  Contact's user identifier in Telegram
+     *  Contact's user identifier in Telegram. This number may have more than 32 significant bits and some programming
+     *  languages may have difficulty/silent defects in interpreting it. But it has at most 52 significant bits, so a
+     *  64-bit integer or double-precision float type are safe for storing this identifier.
      */
-    val userId: Int? = null,
+    val userId: Long? = null,
 
     /**
      *  Additional data about the contact in the form of a vCard
@@ -1059,7 +1107,7 @@ data class Dice(
     val emoji: String,
 
     /**
-     *  Value of the dice, 1-6 for “” and “” base emoji, 1-5 for “” and “” base emoji, 1-64 for “” base emoji
+     *  Value of the dice, 1-6 for “”, “” and “” base emoji, 1-5 for “” and “” base emoji, 1-64 for “” base emoji
      */
     val value: Int
 )
@@ -1115,7 +1163,7 @@ data class Poll(
     val id: String,
 
     /**
-     *  Poll question, 1-255 characters
+     *  Poll question, 1-300 characters
      */
     val question: String,
 
@@ -1284,6 +1332,60 @@ data class ProximityAlertTriggered(
 
 
 /**
+ *  This object represents a service message about a change in auto-delete timer settings.
+ */
+data class MessageAutoDeleteTimerChanged(
+
+    /**
+     *  New auto-delete time for messages in the chat
+     */
+    val messageAutoDeleteTime: Int
+)
+
+
+/**
+ *  This object represents a service message about a voice chat scheduled in the chat.
+ */
+data class VoiceChatScheduled(
+
+    /**
+     *  Point in time (Unix timestamp) when the voice chat is supposed to be started by a chat administrator
+     */
+    val startDate: Int
+)
+
+
+/**
+ *  This object represents a service message about a voice chat started in the chat. Currently holds no information.
+ */
+class VoiceChatStarted
+
+
+/**
+ *  This object represents a service message about a voice chat ended in the chat.
+ */
+data class VoiceChatEnded(
+
+    /**
+     *  Voice chat duration; in seconds
+     */
+    val duration: Int
+)
+
+
+/**
+ *  This object represents a service message about new members invited to a voice chat.
+ */
+data class VoiceChatParticipantsInvited(
+
+    /**
+     *  New members that were invited to the voice chat
+     */
+    val users: List<User>? = null
+)
+
+
+/**
  *  This object represent a user's profile pictures.
  */
 data class UserProfilePhotos(
@@ -1353,6 +1455,11 @@ data class ReplyKeyboardMarkup(
      *  in the input field to see the custom keyboard again. Defaults to false.
      */
     val oneTimeKeyboard: Boolean? = null,
+
+    /**
+     *  The placeholder to be shown in the input field when the keyboard is active; 1-64 characters
+     */
+    val inputFieldPlaceholder: String? = null,
 
     /**
      *  Use this parameter if you want to show the keyboard to specific users only. Targets: 1) users that are
@@ -1607,6 +1714,11 @@ data class ForceReply(
     val forceReply: Boolean,
 
     /**
+     *  The placeholder to be shown in the input field when the reply is active; 1-64 characters
+     */
+    val inputFieldPlaceholder: String? = null,
+
+    /**
      *  Use this parameter if you want to force reply from specific users only. Targets: 1) users that are @mentioned
      *  in the text of the Message object; 2) if the bot's message is a reply (has reply_to_message_id), sender of the
      *  original message.
@@ -1647,9 +1759,60 @@ data class ChatPhoto(
 
 
 /**
- *  This object contains information about one member of a chat.
+ *  Represents an invite link for a chat.
  */
-data class ChatMember(
+data class ChatInviteLink(
+
+    /**
+     *  The invite link. If the link was created by another chat administrator, then the second part of the link will
+     *  be replaced with “…”.
+     */
+    val inviteLink: String,
+
+    /**
+     *  Creator of the link
+     */
+    val creator: User,
+
+    /**
+     *  True, if the link is primary
+     */
+    val isPrimary: Boolean,
+
+    /**
+     *  True, if the link is revoked
+     */
+    val isRevoked: Boolean,
+
+    /**
+     *  Point in time (Unix timestamp) when the link will expire or has been expired
+     */
+    val expireDate: Int? = null,
+
+    /**
+     *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
+     *  link; 1-99999
+     */
+    val memberLimit: Int? = null
+)
+
+
+/**
+ *  This object contains information about one member of a chat. Currently, the following 6 types of chat members are
+ *  supported:
+ */
+class ChatMember
+
+
+/**
+ *  Represents a chat member that owns the chat and has all administrator privileges.
+ */
+data class ChatMemberOwner(
+
+    /**
+     *  The member's status in the chat, always “creator”
+     */
+    val status: String,
 
     /**
      *  Information about the user
@@ -1657,104 +1820,260 @@ data class ChatMember(
     val user: User,
 
     /**
-     *  The member's status in the chat. Can be “creator”, “administrator”, “member”, “restricted”, “left” or “kicked”
+     *  Custom title for this user
+     */
+    val customTitle: String,
+
+    /**
+     *  True, if the user's presence in the chat is hidden
+     */
+    val isAnonymous: Boolean
+)
+
+
+/**
+ *  Represents a chat member that has some additional privileges.
+ */
+data class ChatMemberAdministrator(
+
+    /**
+     *  The member's status in the chat, always “administrator”
      */
     val status: String,
 
     /**
-     *  Owner and administrators only. Custom title for this user
+     *  Information about the user
      */
-    val customTitle: String? = null,
+    val user: User,
 
     /**
-     *  Owner and administrators only. True, if the user's presence in the chat is hidden
+     *  True, if the bot is allowed to edit administrator privileges of that user
      */
-    val isAnonymous: Boolean? = null,
+    val canBeEdited: Boolean,
 
     /**
-     *  Administrators only. True, if the bot is allowed to edit administrator privileges of that user
+     *  Custom title for this user
      */
-    val canBeEdited: Boolean? = null,
+    val customTitle: String,
 
     /**
-     *  Administrators only. True, if the administrator can post in the channel; channels only
+     *  True, if the user's presence in the chat is hidden
      */
-    val canPostMessages: Boolean? = null,
+    val isAnonymous: Boolean,
 
     /**
-     *  Administrators only. True, if the administrator can edit messages of other users and can pin messages; channels
-     *  only
+     *  True, if the administrator can access the chat event log, chat statistics, message statistics in channels, see
+     *  channel members, see anonymous administrators in supergroups and ignore slow mode. Implied by any other
+     *  administrator privilege
      */
-    val canEditMessages: Boolean? = null,
+    val canManageChat: Boolean,
 
     /**
-     *  Administrators only. True, if the administrator can delete messages of other users
+     *  True, if the administrator can post in the channel; channels only
      */
-    val canDeleteMessages: Boolean? = null,
+    val canPostMessages: Boolean,
 
     /**
-     *  Administrators only. True, if the administrator can restrict, ban or unban chat members
+     *  True, if the administrator can edit messages of other users and can pin messages; channels only
      */
-    val canRestrictMembers: Boolean? = null,
+    val canEditMessages: Boolean,
 
     /**
-     *  Administrators only. True, if the administrator can add new administrators with a subset of their own
-     *  privileges or demote administrators that he has promoted, directly or indirectly (promoted by administrators
-     *  that were appointed by the user)
+     *  True, if the administrator can delete messages of other users
      */
-    val canPromoteMembers: Boolean? = null,
+    val canDeleteMessages: Boolean,
 
     /**
-     *  Administrators and restricted only. True, if the user is allowed to change the chat title, photo and other
-     *  settings
+     *  True, if the administrator can manage voice chats
      */
-    val canChangeInfo: Boolean? = null,
+    val canManageVoiceChats: Boolean,
 
     /**
-     *  Administrators and restricted only. True, if the user is allowed to invite new users to the chat
+     *  True, if the administrator can restrict, ban or unban chat members
      */
-    val canInviteUsers: Boolean? = null,
+    val canRestrictMembers: Boolean,
 
     /**
-     *  Administrators and restricted only. True, if the user is allowed to pin messages; groups and supergroups only
+     *  True, if the administrator can add new administrators with a subset of their own privileges or demote
+     *  administrators that he has promoted, directly or indirectly (promoted by administrators that were appointed by
+     *  the user)
      */
-    val canPinMessages: Boolean? = null,
+    val canPromoteMembers: Boolean,
 
     /**
-     *  Restricted only. True, if the user is a member of the chat at the moment of the request
+     *  True, if the user is allowed to change the chat title, photo and other settings
      */
-    val isMember: Boolean? = null,
+    val canChangeInfo: Boolean,
 
     /**
-     *  Restricted only. True, if the user is allowed to send text messages, contacts, locations and venues
+     *  True, if the user is allowed to invite new users to the chat
      */
-    val canSendMessages: Boolean? = null,
+    val canInviteUsers: Boolean,
 
     /**
-     *  Restricted only. True, if the user is allowed to send audios, documents, photos, videos, video notes and voice
-     *  notes
+     *  True, if the user is allowed to pin messages; groups and supergroups only
      */
-    val canSendMediaMessages: Boolean? = null,
+    val canPinMessages: Boolean
+)
+
+
+/**
+ *  Represents a chat member that has no additional privileges or restrictions.
+ */
+data class ChatMemberMember(
 
     /**
-     *  Restricted only. True, if the user is allowed to send polls
+     *  The member's status in the chat, always “member”
      */
-    val canSendPolls: Boolean? = null,
+    val status: String,
 
     /**
-     *  Restricted only. True, if the user is allowed to send animations, games, stickers and use inline bots
+     *  Information about the user
      */
-    val canSendOtherMessages: Boolean? = null,
+    val user: User
+)
+
+
+/**
+ *  Represents a chat member that is under certain restrictions in the chat. Supergroups only.
+ */
+data class ChatMemberRestricted(
 
     /**
-     *  Restricted only. True, if the user is allowed to add web page previews to their messages
+     *  The member's status in the chat, always “restricted”
      */
-    val canAddWebPagePreviews: Boolean? = null,
+    val status: String,
 
     /**
-     *  Restricted and kicked only. Date when restrictions will be lifted for this user; unix time
+     *  Information about the user
      */
-    val untilDate: Int? = null
+    val user: User,
+
+    /**
+     *  True, if the user is a member of the chat at the moment of the request
+     */
+    val isMember: Boolean,
+
+    /**
+     *  True, if the user is allowed to change the chat title, photo and other settings
+     */
+    val canChangeInfo: Boolean,
+
+    /**
+     *  True, if the user is allowed to invite new users to the chat
+     */
+    val canInviteUsers: Boolean,
+
+    /**
+     *  True, if the user is allowed to pin messages; groups and supergroups only
+     */
+    val canPinMessages: Boolean,
+
+    /**
+     *  True, if the user is allowed to send text messages, contacts, locations and venues
+     */
+    val canSendMessages: Boolean,
+
+    /**
+     *  True, if the user is allowed to send audios, documents, photos, videos, video notes and voice notes
+     */
+    val canSendMediaMessages: Boolean,
+
+    /**
+     *  True, if the user is allowed to send polls
+     */
+    val canSendPolls: Boolean,
+
+    /**
+     *  True, if the user is allowed to send animations, games, stickers and use inline bots
+     */
+    val canSendOtherMessages: Boolean,
+
+    /**
+     *  True, if the user is allowed to add web page previews to their messages
+     */
+    val canAddWebPagePreviews: Boolean,
+
+    /**
+     *  Date when restrictions will be lifted for this user; unix time
+     */
+    val untilDate: Int
+)
+
+
+/**
+ *  Represents a chat member that isn't currently a member of the chat, but may join it themselves.
+ */
+data class ChatMemberLeft(
+
+    /**
+     *  The member's status in the chat, always “left”
+     */
+    val status: String,
+
+    /**
+     *  Information about the user
+     */
+    val user: User
+)
+
+
+/**
+ *  Represents a chat member that was banned in the chat and can't return to the chat or view chat messages.
+ */
+data class ChatMemberBanned(
+
+    /**
+     *  The member's status in the chat, always “kicked”
+     */
+    val status: String,
+
+    /**
+     *  Information about the user
+     */
+    val user: User,
+
+    /**
+     *  Date when restrictions will be lifted for this user; unix time
+     */
+    val untilDate: Int
+)
+
+
+/**
+ *  This object represents changes in the status of a chat member.
+ */
+data class ChatMemberUpdated(
+
+    /**
+     *  Chat the user belongs to
+     */
+    val chat: Chat,
+
+    /**
+     *  Performer of the action, which resulted in the change
+     */
+    val from: User,
+
+    /**
+     *  Date the change was done in Unix time
+     */
+    val date: Int,
+
+    /**
+     *  Previous information about the chat member
+     */
+    val oldChatMember: ChatMember,
+
+    /**
+     *  New information about the chat member
+     */
+    val newChatMember: ChatMember,
+
+    /**
+     *  Chat invite link, which was used by the user to join the chat; for joining by invite link events only.
+     */
+    val inviteLink: ChatInviteLink? = null
 )
 
 
@@ -1842,14 +2161,127 @@ data class BotCommand(
 
 
 /**
+ *  This object represents the scope to which bot commands are applied. Currently, the following 7 scopes are
+ *  supported:
+ */
+class BotCommandScope
+
+
+/**
+ *  Represents the default scope of bot commands. Default commands are used if no commands with a narrower scope are
+ *  specified for the user.
+ */
+data class BotCommandScopeDefault(
+
+    /**
+     *  Scope type, must be default
+     */
+    val type: String
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering all private chats.
+ */
+data class BotCommandScopeAllPrivateChats(
+
+    /**
+     *  Scope type, must be all_private_chats
+     */
+    val type: String
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering all group and supergroup chats.
+ */
+data class BotCommandScopeAllGroupChats(
+
+    /**
+     *  Scope type, must be all_group_chats
+     */
+    val type: String
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering all group and supergroup chat administrators.
+ */
+data class BotCommandScopeAllChatAdministrators(
+
+    /**
+     *  Scope type, must be all_chat_administrators
+     */
+    val type: String
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering a specific chat.
+ */
+data class BotCommandScopeChat(
+
+    /**
+     *  Scope type, must be chat
+     */
+    val type: String,
+
+    /**
+     *  Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
+     */
+    val chatId: Long
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering all administrators of a specific group or supergroup chat.
+ */
+data class BotCommandScopeChatAdministrators(
+
+    /**
+     *  Scope type, must be chat_administrators
+     */
+    val type: String,
+
+    /**
+     *  Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
+     */
+    val chatId: Long
+)
+
+
+/**
+ *  Represents the scope of bot commands, covering a specific member of a group or supergroup chat.
+ */
+data class BotCommandScopeChatMember(
+
+    /**
+     *  Scope type, must be chat_member
+     */
+    val type: String,
+
+    /**
+     *  Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Unique identifier of the target user
+     */
+    val userId: Int
+)
+
+
+/**
  *  Contains information about why a request was unsuccessful.
  */
 data class ResponseParameters(
 
     /**
-     *  The group has been migrated to a supergroup with the specified identifier. This number may be greater than 32
-     *  bits and some programming languages may have difficulty/silent defects in interpreting it. But it is smaller
-     *  than 52 bits, so a signed 64 bit integer or double-precision float type are safe for storing this identifier.
+     *  The group has been migrated to a supergroup with the specified identifier. This number may have more than 32
+     *  significant bits and some programming languages may have difficulty/silent defects in interpreting it. But it
+     *  has at most 52 significant bits, so a signed 64-bit integer or double-precision float type are safe for storing
+     *  this identifier.
      */
     val migrateToChatId: Long? = null,
 
@@ -2214,7 +2646,8 @@ data class SendMessageRequest(
 
 
 /**
- *  Use this method to forward messages of any kind. On success, the sent Message is returned.
+ *  Use this method to forward messages of any kind. Service messages can't be forwarded. On success, the sent Message
+ *  is returned.
  */
 data class ForwardMessageRequest(
 
@@ -2242,8 +2675,9 @@ data class ForwardMessageRequest(
 
 
 /**
- *  Use this method to copy messages of any kind. The method is analogous to the method forwardMessages, but the copied
- *  message doesn't have a link to the original message. Returns the MessageId of the sent message on success.
+ *  Use this method to copy messages of any kind. Service messages and invoice messages can't be copied. The method is
+ *  analogous to the method forwardMessage, but the copied message doesn't have a link to the original message. Returns
+ *  the MessageId of the sent message on success.
  */
 data class CopyMessageRequest(
 
@@ -3221,8 +3655,8 @@ data class SendDiceRequest(
     val chatId: Long,
 
     /**
-     *  Emoji on which the dice throw animation is based. Currently, must be one of “”, “”, “”, “”, or “”. Dice can
-     *  have values 1-6 for “” and “”, values 1-5 for “” and “”, and values 1-64 for “”. Defaults to “”
+     *  Emoji on which the dice throw animation is based. Currently, must be one of “”, “”, “”, “”, “”, or “”. Dice can
+     *  have values 1-6 for “”, “” and “”, values 1-5 for “” and “”, and values 1-64 for “”. Defaults to “”
      */
     val emoji: String? = null,
 
@@ -3315,12 +3749,12 @@ data class GetFileRequest(
 
 
 /**
- *  Use this method to kick a user from a group, a supergroup or a channel. In the case of supergroups and channels,
- *  the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The
- *  bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True
- *  on success.
+ *  Use this method to ban a user in a group, a supergroup or a channel. In the case of supergroups and channels, the
+ *  user will not be able to return to the chat on their own using invite links, etc., unless unbanned first. The bot
+ *  must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on
+ *  success.
  */
-data class KickChatMemberRequest(
+data class BanChatMemberRequest(
 
     /**
      *  Unique identifier for the target group or username of the target supergroup or channel (in the format
@@ -3335,14 +3769,22 @@ data class KickChatMemberRequest(
 
     /**
      *  Date when the user will be unbanned, unix time. If user is banned for more than 366 days or less than 30
-     *  seconds from the current time they are considered to be banned forever
+     *  seconds from the current time they are considered to be banned forever. Applied for supergroups and channels
+     *  only.
      */
-    val untilDate: Int? = null
+    val untilDate: Int? = null,
+
+    /**
+     *  Pass True to delete all messages from the chat for the user that is being removed. If False, the user will be
+     *  able to see messages in the group that were sent before the user was removed. Always True for supergroups and
+     *  channels.
+     */
+    val revokeMessages: Boolean? = null
 )
 
 
 /**
- *  Use this method to unban a previously kicked user in a supergroup or channel. The user will not return to the group
+ *  Use this method to unban a previously banned user in a supergroup or channel. The user will not return to the group
  *  or channel automatically, but will be able to join via link, etc. The bot must be an administrator for this to
  *  work. By default, this method guarantees that after the call the user is not a member of the chat, but will be able
  *  to join it. So if the user is a member of the chat they will also be removed from the chat. If you don't want this,
@@ -3421,9 +3863,11 @@ data class PromoteChatMemberRequest(
     val isAnonymous: Boolean? = null,
 
     /**
-     *  Pass True, if the administrator can change chat title, photo and other settings
+     *  Pass True, if the administrator can access the chat event log, chat statistics, message statistics in channels,
+     *  see channel members, see anonymous administrators in supergroups and ignore slow mode. Implied by any other
+     *  administrator privilege
      */
-    val canChangeInfo: Boolean? = null,
+    val canManageChat: Boolean? = null,
 
     /**
      *  Pass True, if the administrator can create channel posts, channels only
@@ -3441,9 +3885,9 @@ data class PromoteChatMemberRequest(
     val canDeleteMessages: Boolean? = null,
 
     /**
-     *  Pass True, if the administrator can invite new users to the chat
+     *  Pass True, if the administrator can manage voice chats
      */
-    val canInviteUsers: Boolean? = null,
+    val canManageVoiceChats: Boolean? = null,
 
     /**
      *  Pass True, if the administrator can restrict, ban or unban chat members
@@ -3451,16 +3895,26 @@ data class PromoteChatMemberRequest(
     val canRestrictMembers: Boolean? = null,
 
     /**
-     *  Pass True, if the administrator can pin messages, supergroups only
-     */
-    val canPinMessages: Boolean? = null,
-
-    /**
      *  Pass True, if the administrator can add new administrators with a subset of their own privileges or demote
      *  administrators that he has promoted, directly or indirectly (promoted by administrators that were appointed by
      *  him)
      */
-    val canPromoteMembers: Boolean? = null
+    val canPromoteMembers: Boolean? = null,
+
+    /**
+     *  Pass True, if the administrator can change chat title, photo and other settings
+     */
+    val canChangeInfo: Boolean? = null,
+
+    /**
+     *  Pass True, if the administrator can invite new users to the chat
+     */
+    val canInviteUsers: Boolean? = null,
+
+    /**
+     *  Pass True, if the administrator can pin messages, supergroups only
+     */
+    val canPinMessages: Boolean? = null
 )
 
 
@@ -3506,9 +3960,9 @@ data class SetChatPermissionsRequest(
 
 
 /**
- *  Use this method to generate a new invite link for a chat; any previously generated link is revoked. The bot must be
- *  an administrator in the chat for this to work and must have the appropriate admin rights. Returns the new invite
- *  link as String on success.
+ *  Use this method to generate a new primary invite link for a chat; any previously generated primary link is revoked.
+ *  The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns
+ *  the new invite link as String on success.
  */
 data class ExportChatInviteLinkRequest(
 
@@ -3516,6 +3970,80 @@ data class ExportChatInviteLinkRequest(
      *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      */
     val chatId: Long
+)
+
+
+/**
+ *  Use this method to create an additional invite link for a chat. The bot must be an administrator in the chat for
+ *  this to work and must have the appropriate admin rights. The link can be revoked using the method
+ *  revokeChatInviteLink. Returns the new invite link as ChatInviteLink object.
+ */
+data class CreateChatInviteLinkRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Point in time (Unix timestamp) when the link will expire
+     */
+    val expireDate: Int? = null,
+
+    /**
+     *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
+     *  link; 1-99999
+     */
+    val memberLimit: Int? = null
+)
+
+
+/**
+ *  Use this method to edit a non-primary invite link created by the bot. The bot must be an administrator in the chat
+ *  for this to work and must have the appropriate admin rights. Returns the edited invite link as a ChatInviteLink
+ *  object.
+ */
+data class EditChatInviteLinkRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  The invite link to edit
+     */
+    val inviteLink: String,
+
+    /**
+     *  Point in time (Unix timestamp) when the link will expire
+     */
+    val expireDate: Int? = null,
+
+    /**
+     *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
+     *  link; 1-99999
+     */
+    val memberLimit: Int? = null
+)
+
+
+/**
+ *  Use this method to revoke an invite link created by the bot. If the primary link is revoked, a new link is
+ *  automatically generated. The bot must be an administrator in the chat for this to work and must have the
+ *  appropriate admin rights. Returns the revoked invite link as ChatInviteLink object.
+ */
+data class RevokeChatInviteLinkRequest(
+
+    /**
+     *  Unique identifier of the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  The invite link to revoke
+     */
+    val inviteLink: String
 )
 
 
@@ -3690,7 +4218,7 @@ data class GetChatAdministratorsRequest(
 /**
  *  Use this method to get the number of members in a chat. Returns Int on success.
  */
-data class GetChatMembersCountRequest(
+data class GetChatMemberCountRequest(
 
     /**
      *  Unique identifier for the target chat or username of the target supergroup or channel (in the format
@@ -3790,7 +4318,8 @@ data class AnswerCallbackQueryRequest(
 
 
 /**
- *  Use this method to change the list of the bot's commands. Returns True on success.
+ *  Use this method to change the list of the bot's commands. See https://core.telegram.org/bots#commands for more
+ *  details about bot commands. Returns True on success.
  */
 data class SetMyCommandsRequest(
 
@@ -3798,15 +4327,58 @@ data class SetMyCommandsRequest(
      *  A JSON-serialized list of bot commands to be set as the list of the bot's commands. At most 100 commands can be
      *  specified.
      */
-    val commands: List<BotCommand>
+    val commands: List<BotCommand>,
+
+    /**
+     *  A JSON-serialized object, describing scope of users for which the commands are relevant. Defaults to
+     *  BotCommandScopeDefault.
+     */
+    val scope: BotCommandScope? = null,
+
+    /**
+     *  A two-letter ISO 639-1 language code. If empty, commands will be applied to all users from the given scope, for
+     *  whose language there are no dedicated commands
+     */
+    val languageCode: String? = null
 )
 
 
 /**
- *  Use this method to get the current list of the bot's commands. Requires no parameters. Returns Array of BotCommand
- *  on success.
+ *  Use this method to delete the list of the bot's commands for the given scope and user language. After deletion,
+ *  higher level commands will be shown to affected users. Returns True on success.
  */
-class GetMyCommandsRequest
+data class DeleteMyCommandsRequest(
+
+    /**
+     *  A JSON-serialized object, describing scope of users for which the commands are relevant. Defaults to
+     *  BotCommandScopeDefault.
+     */
+    val scope: BotCommandScope? = null,
+
+    /**
+     *  A two-letter ISO 639-1 language code. If empty, commands will be applied to all users from the given scope, for
+     *  whose language there are no dedicated commands
+     */
+    val languageCode: String? = null
+)
+
+
+/**
+ *  Use this method to get the current list of the bot's commands for the given scope and user language. Returns Array
+ *  of BotCommand on success. If commands aren't set, an empty list is returned.
+ */
+data class GetMyCommandsRequest(
+
+    /**
+     *  A JSON-serialized object, describing scope of users. Defaults to BotCommandScopeDefault.
+     */
+    val scope: BotCommandScope? = null,
+
+    /**
+     *  A two-letter ISO 639-1 language code or an empty string
+     */
+    val languageCode: String? = null
+)
 
 
 /**
@@ -4381,11 +4953,6 @@ data class InlineQuery(
     val from: User,
 
     /**
-     *  Sender location, only for bots that request user location
-     */
-    val location: Location? = null,
-
-    /**
      *  Text of the query (up to 256 characters)
      */
     val query: String,
@@ -4393,7 +4960,20 @@ data class InlineQuery(
     /**
      *  Offset of the results to be returned, can be controlled by the bot
      */
-    val offset: String
+    val offset: String,
+
+    /**
+     *  Type of the chat, from which the inline query was sent. Can be either “sender” for a private chat with the
+     *  inline query sender, “private”, “group”, “supergroup”, or “channel”. The chat type should be always known for
+     *  requests sent from official clients and most third-party clients, unless the request was sent from a secret
+     *  chat
+     */
+    val chatType: String? = null,
+
+    /**
+     *  Sender location, only for bots that request user location
+     */
+    val location: Location? = null
 )
 
 
@@ -4454,6 +5034,9 @@ data class AnswerInlineQueryRequest(
 /**
  *  This object represents one result of an inline query. Telegram clients currently support results of the following
  *  20 types:
+ *
+ *  Note: All URLs passed in inline query results will be available to end users and therefore must be assumed to be
+ *  public.
  */
 class InlineQueryResult
 
@@ -5739,7 +6322,7 @@ data class InlineQueryResultCachedAudio(
 
 /**
  *  This object represents the content of a message to be sent as a result of an inline query. Telegram clients
- *  currently support the following 4 types:
+ *  currently support the following 5 types:
  */
 class InputMessageContent
 
@@ -5886,6 +6469,122 @@ data class InputContactMessageContent(
 
 
 /**
+ *  Represents the content of an invoice message to be sent as the result of an inline query.
+ */
+data class InputInvoiceMessageContent(
+
+    /**
+     *  Product name, 1-32 characters
+     */
+    val title: String,
+
+    /**
+     *  Product description, 1-255 characters
+     */
+    val description: String,
+
+    /**
+     *  Bot-defined invoice payload, 1-128 bytes. This will not be displayed to the user, use for your internal
+     *  processes.
+     */
+    val payload: String,
+
+    /**
+     *  Payment provider token, obtained via Botfather
+     */
+    val providerToken: String,
+
+    /**
+     *  Three-letter ISO 4217 currency code, see more on currencies
+     */
+    val currency: String,
+
+    /**
+     *  Price breakdown, a JSON-serialized list of components (e.g. product price, tax, discount, delivery cost,
+     *  delivery tax, bonus, etc.)
+     */
+    val prices: List<LabeledPrice>,
+
+    /**
+     *  The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For
+     *  example, for a maximum tip of US$ 1.45 pass max_tip_amount = 145. See the exp parameter in currencies.json, it
+     *  shows the number of digits past the decimal point for each currency (2 for the majority of currencies).
+     *  Defaults to 0
+     */
+    val maxTipAmount: Int? = null,
+
+    /**
+     *  A JSON-serialized array of suggested amounts of tip in the smallest units of the currency (integer, not
+     *  float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive,
+     *  passed in a strictly increased order and must not exceed max_tip_amount.
+     */
+    val suggestedTipAmounts: List<Int>? = null,
+
+    /**
+     *  A JSON-serialized object for data about the invoice, which will be shared with the payment provider. A detailed
+     *  description of the required fields should be provided by the payment provider.
+     */
+    val providerData: String? = null,
+
+    /**
+     *  URL of the product photo for the invoice. Can be a photo of the goods or a marketing image for a service.
+     *  People like it better when they see what they are paying for.
+     */
+    val photoUrl: String? = null,
+
+    /**
+     *  Photo size
+     */
+    val photoSize: Int? = null,
+
+    /**
+     *  Photo width
+     */
+    val photoWidth: Int? = null,
+
+    /**
+     *  Photo height
+     */
+    val photoHeight: Int? = null,
+
+    /**
+     *  Pass True, if you require the user's full name to complete the order
+     */
+    val needName: Boolean? = null,
+
+    /**
+     *  Pass True, if you require the user's phone number to complete the order
+     */
+    val needPhoneNumber: Boolean? = null,
+
+    /**
+     *  Pass True, if you require the user's email address to complete the order
+     */
+    val needEmail: Boolean? = null,
+
+    /**
+     *  Pass True, if you require the user's shipping address to complete the order
+     */
+    val needShippingAddress: Boolean? = null,
+
+    /**
+     *  Pass True, if user's phone number should be sent to provider
+     */
+    val sendPhoneNumberToProvider: Boolean? = null,
+
+    /**
+     *  Pass True, if user's email address should be sent to provider
+     */
+    val sendEmailToProvider: Boolean? = null,
+
+    /**
+     *  Pass True, if the final price depends on the shipping method
+     */
+    val isFlexible: Boolean? = null
+)
+
+
+/**
  *  Represents a result of an inline query that was chosen by the user and sent to their chat partner.
  *
  *  Note: It is necessary to enable inline feedback via @Botfather in order to receive these objects in updates.
@@ -5926,7 +6625,7 @@ data class ChosenInlineResult(
 data class SendInvoiceRequest(
 
     /**
-     *  Unique identifier for the target private chat
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      */
     val chatId: Long,
 
@@ -5952,11 +6651,6 @@ data class SendInvoiceRequest(
     val providerToken: String,
 
     /**
-     *  Unique deep-linking parameter that can be used to generate this invoice when used as a start parameter
-     */
-    val startParameter: String,
-
-    /**
      *  Three-letter ISO 4217 currency code, see more on currencies
      */
     val currency: String,
@@ -5966,6 +6660,29 @@ data class SendInvoiceRequest(
      *  delivery tax, bonus, etc.)
      */
     val prices: List<LabeledPrice>,
+
+    /**
+     *  The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For
+     *  example, for a maximum tip of US$ 1.45 pass max_tip_amount = 145. See the exp parameter in currencies.json, it
+     *  shows the number of digits past the decimal point for each currency (2 for the majority of currencies).
+     *  Defaults to 0
+     */
+    val maxTipAmount: Int? = null,
+
+    /**
+     *  A JSON-serialized array of suggested amounts of tips in the smallest units of the currency (integer, not
+     *  float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive,
+     *  passed in a strictly increased order and must not exceed max_tip_amount.
+     */
+    val suggestedTipAmounts: List<Int>? = null,
+
+    /**
+     *  Unique deep-linking parameter. If left empty, forwarded copies of the sent message will have a Pay button,
+     *  allowing multiple users to pay directly from the forwarded message, using the same invoice. If non-empty,
+     *  forwarded copies of the sent message will have a URL button with a deep link to the bot (instead of a Pay
+     *  button), with the value used as the start parameter
+     */
+    val startParameter: String? = null,
 
     /**
      *  A JSON-serialized data about the invoice, which will be shared with the payment provider. A detailed
