@@ -8,26 +8,19 @@ plugins {
 }
 
 springBoot {
-    mainClassName = "ru.darkkeks.kksstat.KksStatAppKt"
+    mainClass.set("ru.darkkeks.kksstat.KksStatAppKt")
 }
 
 dependencies {
     implementation(project(":core"))
 
-    implementation("com.squareup.okhttp3:logging-interceptor:3.14.9")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.postgresql:postgresql:42.2.15")
-    implementation("org.jooq:jooq-meta:3.14.7")
+    implementation("org.postgresql:postgresql")
+    implementation("org.jooq:jooq-meta")
 
-    jooqGenerator("org.postgresql:postgresql:42.2.14")
-}
-
-java {
-    sourceSets.create("generated") {
-        java.srcDir("src/generated/java")
-    }
+    jooqGenerator("org.postgresql:postgresql")
 }
 
 jooq {

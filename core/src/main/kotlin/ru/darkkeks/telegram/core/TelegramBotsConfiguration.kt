@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.TelegramApi
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService

@@ -9,7 +9,7 @@ dependencies {
 
     api("com.google.guava:guava:29.0-jre")
 
-    api("org.springframework.boot:spring-boot-starter:2.3.2.RELEASE")
+    api("org.springframework.boot:spring-boot-starter:2.5.0")
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1")
     api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.1")
 

@@ -4,9 +4,9 @@
 package ru.darkkeks.kksstat.schema;
 
 
-import org.jooq.Identity;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
 import ru.darkkeks.kksstat.schema.tables.Submissions;
@@ -14,38 +14,15 @@ import ru.darkkeks.kksstat.schema.tables.records.SubmissionsRecord;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables of 
- * the <code>public</code> schema.
+ * A class modelling foreign key relationships and constraints of tables in 
+ * public.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Keys {
 
     // -------------------------------------------------------------------------
-    // IDENTITY definitions
-    // -------------------------------------------------------------------------
-
-    public static final Identity<SubmissionsRecord, Integer> IDENTITY_SUBMISSIONS = Identities0.IDENTITY_SUBMISSIONS;
-
-    // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<SubmissionsRecord> SUBMISSIONS_PKEY = UniqueKeys0.SUBMISSIONS_PKEY;
-
-    // -------------------------------------------------------------------------
-    // FOREIGN KEY definitions
-    // -------------------------------------------------------------------------
-
-
-    // -------------------------------------------------------------------------
-    // [#1459] distribute members to avoid static initialisers > 64kb
-    // -------------------------------------------------------------------------
-
-    private static class Identities0 {
-        public static Identity<SubmissionsRecord, Integer> IDENTITY_SUBMISSIONS = Internal.createIdentity(Submissions.SUBMISSIONS, Submissions.SUBMISSIONS.ID);
-    }
-
-    private static class UniqueKeys0 {
-        public static final UniqueKey<SubmissionsRecord> SUBMISSIONS_PKEY = Internal.createUniqueKey(Submissions.SUBMISSIONS, "submissions_pkey", new TableField[] { Submissions.SUBMISSIONS.ID }, true);
-    }
+    public static final UniqueKey<SubmissionsRecord> SUBMISSIONS_PKEY = Internal.createUniqueKey(Submissions.SUBMISSIONS, DSL.name("submissions_pkey"), new TableField[] { Submissions.SUBMISSIONS.ID }, true);
 }

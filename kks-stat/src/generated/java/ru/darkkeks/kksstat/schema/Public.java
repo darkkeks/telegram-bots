@@ -21,7 +21,7 @@ import ru.darkkeks.kksstat.schema.tables.Submissions;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = -5516569;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public</code>

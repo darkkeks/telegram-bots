@@ -21,6 +21,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 import ru.darkkeks.kksstat.schema.Keys;
@@ -34,7 +35,7 @@ import ru.darkkeks.kksstat.schema.tables.records.SubmissionsRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Submissions extends TableImpl<SubmissionsRecord> {
 
-    private static final long serialVersionUID = 745779955;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public.submissions</code>
@@ -52,33 +53,34 @@ public class Submissions extends TableImpl<SubmissionsRecord> {
     /**
      * The column <code>public.submissions.id</code>.
      */
-    public final TableField<SubmissionsRecord, Integer> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('submissions_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<SubmissionsRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>public.submissions.login</code>.
      */
-    public final TableField<SubmissionsRecord, String> LOGIN = createField(DSL.name("login"), org.jooq.impl.SQLDataType.VARCHAR(50).nullable(false), this, "");
+    public final TableField<SubmissionsRecord, String> LOGIN = createField(DSL.name("login"), SQLDataType.VARCHAR(50).nullable(false), this, "");
 
     /**
      * The column <code>public.submissions.contest_id</code>.
      */
-    public final TableField<SubmissionsRecord, Integer> CONTEST_ID = createField(DSL.name("contest_id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<SubmissionsRecord, Integer> CONTEST_ID = createField(DSL.name("contest_id"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>public.submissions.submit_time</code>.
      */
-    public final TableField<SubmissionsRecord, LocalDateTime> SUBMIT_TIME = createField(DSL.name("submit_time"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
+    public final TableField<SubmissionsRecord, LocalDateTime> SUBMIT_TIME = createField(DSL.name("submit_time"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "");
 
     /**
      * The column <code>public.submissions.standings</code>.
      */
-    public final TableField<SubmissionsRecord, JSONB> STANDINGS = createField(DSL.name("standings"), org.jooq.impl.SQLDataType.JSONB.nullable(false), this, "");
+    public final TableField<SubmissionsRecord, JSONB> STANDINGS = createField(DSL.name("standings"), SQLDataType.JSONB.nullable(false), this, "");
 
-    /**
-     * Create a <code>public.submissions</code> table reference
-     */
-    public Submissions() {
-        this(DSL.name("submissions"), null);
+    private Submissions(Name alias, Table<SubmissionsRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private Submissions(Name alias, Table<SubmissionsRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -95,12 +97,11 @@ public class Submissions extends TableImpl<SubmissionsRecord> {
         this(alias, SUBMISSIONS);
     }
 
-    private Submissions(Name alias, Table<SubmissionsRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private Submissions(Name alias, Table<SubmissionsRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>public.submissions</code> table reference
+     */
+    public Submissions() {
+        this(DSL.name("submissions"), null);
     }
 
     public <O extends Record> Submissions(Table<O> child, ForeignKey<O, SubmissionsRecord> key) {
@@ -114,7 +115,7 @@ public class Submissions extends TableImpl<SubmissionsRecord> {
 
     @Override
     public Identity<SubmissionsRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_SUBMISSIONS;
+        return (Identity<SubmissionsRecord, Integer>) super.getIdentity();
     }
 
     @Override

@@ -5,13 +5,13 @@ plugins {
 }
 
 springBoot {
-    mainClassName = "ru.darkkeks.telegram.hseremind.HseRemindAppKt"
+    mainClass.set("ru.darkkeks.telegram.hseremind.HseRemindAppKt")
 }
 
 dependencies {
     implementation(project(":core"))
 
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:2.3.2.RELEASE")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
     implementation("com.google.api-client:google-api-client:1.23.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.23.0")

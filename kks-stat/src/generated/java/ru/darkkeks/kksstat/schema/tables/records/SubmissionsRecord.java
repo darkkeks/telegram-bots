@@ -22,7 +22,7 @@ import ru.darkkeks.kksstat.schema.tables.Submissions;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SubmissionsRecord extends UpdatableRecordImpl<SubmissionsRecord> implements Record5<Integer, String, Integer, LocalDateTime, JSONB> {
 
-    private static final long serialVersionUID = -1779846134;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>public.submissions.id</code>.
@@ -249,10 +249,10 @@ public class SubmissionsRecord extends UpdatableRecordImpl<SubmissionsRecord> im
     public SubmissionsRecord(Integer id, String login, Integer contestId, LocalDateTime submitTime, JSONB standings) {
         super(Submissions.SUBMISSIONS);
 
-        set(0, id);
-        set(1, login);
-        set(2, contestId);
-        set(3, submitTime);
-        set(4, standings);
+        setId(id);
+        setLogin(login);
+        setContestId(contestId);
+        setSubmitTime(submitTime);
+        setStandings(standings);
     }
 }
