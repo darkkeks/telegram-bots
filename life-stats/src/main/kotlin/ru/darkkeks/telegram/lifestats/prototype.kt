@@ -1,5 +1,6 @@
 package ru.darkkeks.telegram.lifestats
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.api.CallbackQuery
 import ru.darkkeks.telegram.core.api.ChatType
@@ -16,7 +17,7 @@ import ru.darkkeks.telegram.core.handle_wip.serialize
 import ru.darkkeks.telegram.core.serialize.ButtonBuffer
 import ru.darkkeks.telegram.core.serialize.Registry
 import ru.darkkeks.telegram.core.toJsonPretty
-import ru.darkkeks.telegram.lifestats.service.UserService.Companion.MAIN_STATE
+import ru.darkkeks.telegram.lifestats.Constants.MAIN_STATE
 
 class RoutingMessageHandler(
     private val telegram: Telegram,
@@ -118,7 +119,8 @@ class ButtonConverter(
     }
 }
 
-typealias StateData = Map<String, Any?>
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
+interface StateData
 
 /**
  * TODO Надо придумать что-то с дефолтным состоянием. Этот класс задумывался как класс, который не зависит от
@@ -126,32 +128,28 @@ typealias StateData = Map<String, Any?>
  * состояния в дефолтное). Например, можно сделать дефолтное состояние null, с пустой мапой
  */
 data class UserData(
-    val id: Long,
+    val uid: Long,
     val chatId: Long,
-    val state: String = MAIN_STATE,
-    val stateData: StateData,
+    val state: String,
+    val stateData: StateData?,
 )
 
 fun UserData.resetState() = setState(MAIN_STATE)
 
 fun UserData.setState(state: String): UserData {
-    return copy(state = state, stateData = mapOf())
+    return copy(state = state, stateData = null)
 }
 
-fun UserData.setState(state: String, data: Map<String, Any?>): UserData {
+fun UserData.setState(state: String, data: StateData?): UserData {
     return copy(state = state, stateData = data)
 }
 
-fun UserData.updateState(data: Map<String, Any?>): UserData {
-    return copy(stateData = stateData + data)
-}
-
-fun UserData.updateState(state: String, data: Map<String, Any?>): UserData {
-    return copy(state = state, stateData = stateData + data)
+fun UserData.updateState(data: StateData?): UserData {
+    return copy(stateData = data)
 }
 
 interface UserDataProvider {
-    fun findUser(id: Long, chatId: Long): UserData?
+    fun findUser(uid: Long, chatId: Long): UserData?
 }
 
 open class Context(

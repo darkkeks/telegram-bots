@@ -8,7 +8,7 @@ import javax.annotation.processing.Generated
 
 enum class EventType {
     POINT,  // point in time
-    DURATION,  // amount of time
+//    DURATION,  // amount of time // TODO обдумать
     SEGMENT,  // begin and end
     COUNT,  // just a number
     ;
@@ -49,10 +49,10 @@ data class EventClass(
 @Table("events")
 data class Event(
     @Id
-    val eid: Int,
+    val eid: Int = 0,
     val ecid: Int,
     val begin: Instant?,
     val end: Instant?,
     val count: Long?,
-    val data: String?,
+    val comment: String?,
 )

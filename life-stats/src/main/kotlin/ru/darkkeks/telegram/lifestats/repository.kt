@@ -18,7 +18,9 @@ class UserInsertRepositoryImpl(
 interface UserRepository : CrudRepository<User, Long>, UserInsertRepository
 
 @Repository
-interface EventRepository : CrudRepository<Event, Int>
+interface EventRepository : CrudRepository<Event, Int> {
+    fun deleteAllBuEcid(ecid: Int)
+}
 
 @Repository
 interface EventClassRepository : CrudRepository<EventClass, Int> {

@@ -1,10 +1,6 @@
 package ru.darkkeks.telegram.core
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.PrettyPrinter
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
@@ -12,14 +8,12 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import retrofit2.Call
-import ru.darkkeks.telegram.core.api.TelegramClientException
-import ru.darkkeks.telegram.core.api.TelegramResponse
-import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.*
+import java.util.Locale
+import java.util.Optional
+import java.util.TimeZone
 import kotlin.reflect.KClass
 
 fun <T : Any> createLogger(kclass: KClass<T>): Logger {
@@ -57,3 +51,6 @@ fun <T> toJson(value: T): String {
 fun <T> toJsonPretty(value: T): String {
     return prettyWriter.writeValueAsString(value);
 }
+
+fun <T : Any> Optional<T>.unwrap(): T? = orElse(null)
+

@@ -3,6 +3,7 @@ package ru.darkkeks.telegram.lifestats.service
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.fromJson
 import ru.darkkeks.telegram.core.toJson
+import ru.darkkeks.telegram.lifestats.Constants.MAIN_STATE
 import ru.darkkeks.telegram.lifestats.StateData
 import ru.darkkeks.telegram.lifestats.User
 import ru.darkkeks.telegram.lifestats.UserData
@@ -13,13 +14,9 @@ import ru.darkkeks.telegram.lifestats.UserRepository
 class UserService(
     private val userRepository: UserRepository,
 ) : UserDataProvider {
-    companion object {
-        const val MAIN_STATE = "main"
-    }
-
     fun getOrCreate(uid: Long): User {
         return userRepository.findById(uid).orElseGet {
-            User(uid, MAIN_STATE, toJson<StateData>(mapOf())).also { user ->
+            User(uid, MAIN_STATE, toJson(null)).also { user ->
                 userRepository.insert(user)
             }
         }
@@ -27,7 +24,7 @@ class UserService(
 
     fun saveUserData(user: UserData) {
         userRepository.save(User(
-            user.id,
+            user.uid,
             user.state,
             toJson(user.stateData),
         ))

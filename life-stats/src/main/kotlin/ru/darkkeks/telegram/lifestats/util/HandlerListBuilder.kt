@@ -36,7 +36,7 @@ class HandlerListBuilder(
             override fun matches(context: MessageContext): Boolean {
                 val text = context.message.text ?: return false
                 return context.user.state == state
-                        && text.startsWith("/$command")
+                        && text.trim().startsWith("/$command")
             }
 
             override fun handle(context: MessageContext) = block(context)
