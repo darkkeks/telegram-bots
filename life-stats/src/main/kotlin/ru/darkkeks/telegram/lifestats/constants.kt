@@ -22,4 +22,7 @@ object Constants {
     // remove event class
     const val REMOVE_CLASS_STATE = "remove_class"
 
+    // edit event
+    const val EDIT_EVENT_STATE = "edit_event"
+    const val EDIT_EVENT_COMMENT_STATE = "edit_event_comment"
 }

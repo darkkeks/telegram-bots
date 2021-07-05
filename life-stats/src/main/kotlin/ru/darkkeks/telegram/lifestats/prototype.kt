@@ -119,7 +119,7 @@ class ButtonConverter(
     }
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 interface StateData
 
 /**

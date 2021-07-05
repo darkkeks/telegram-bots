@@ -63,7 +63,7 @@ class RemoveEventClassHandlers(
             )
             commonMessages.enterMainMenuState(context)
         } else {
-            eventRepository.deleteAllBuEcid(ecid)
+            eventRepository.deleteAllByEcid(ecid)
             eventClassRepository.delete(type)
 
             telegram.sendMessage(

@@ -19,7 +19,8 @@ interface UserRepository : CrudRepository<User, Long>, UserInsertRepository
 
 @Repository
 interface EventRepository : CrudRepository<Event, Int> {
-    fun deleteAllBuEcid(ecid: Int)
+    fun countByEcid(ecid: Int): Int
+    fun deleteAllByEcid(ecid: Int)
 }
 
 @Repository

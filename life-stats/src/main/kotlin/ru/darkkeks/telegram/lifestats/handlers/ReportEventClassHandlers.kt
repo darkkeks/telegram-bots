@@ -16,7 +16,8 @@ import ru.darkkeks.telegram.lifestats.EventClassRepository
 import ru.darkkeks.telegram.lifestats.EventRepository
 import ru.darkkeks.telegram.lifestats.EventType
 import ru.darkkeks.telegram.lifestats.HandlerFactory
-import ru.darkkeks.telegram.lifestats.MainMenuButton
+import ru.darkkeks.telegram.lifestats.BackButton
+import ru.darkkeks.telegram.lifestats.CancelButton
 import ru.darkkeks.telegram.lifestats.NowButton
 import ru.darkkeks.telegram.lifestats.StateData
 import ru.darkkeks.telegram.lifestats.service.UserService
@@ -40,46 +41,10 @@ class ReportEventClassHandlers(
     override fun handlers() = handlerList(Constants.REPORT_CLASS_STATE) {
         command("now", ::handleNow)
         callback<NowButton>(::handleNow)
+        callback<CancelButton>(::handleCancel)
 
         fallback(::handleNotSupported)
         fallbackCallback(::handleNotSupported)
-    }
-
-    private fun handleEvent(context: Context, begin: Instant? = null, end: Instant? = null, count: Long? = null) {
-        val ecid = (context.user.stateData as ReportClassState).ecid
-        val type = eventClassRepository.findById(ecid).unwrap()
-        if (type != null) {
-            val event = Event(
-                ecid = ecid,
-                begin = begin,
-                end = end,
-                count = count,
-                comment = null,
-            ).let { eventRepository.save(it) }
-
-            val keyboard = buildKeyboard {
-                add(MainMenuButton())
-                add(EditEventButton(event.eid))
-                add(AddCommentButton(event.eid))
-            }
-            telegram.sendMessage(
-                context.message.chat.id,
-                "Сохранили событие: $event",
-                replyMarkup = buttonConverter.serialize(keyboard)
-            )
-        } else {
-            handleNotFound(context)
-        }
-    }
-
-    private fun handleNow(context: Context) {
-        val now = Instant.now()
-        handleEvent(context, begin = now, end = now)
-    }
-
-    private fun handleNotFound(context: Context) {
-        telegram.sendMessage(context.message.chat.id, "Редактируемое событие пропало :(")
-        commonMessages.enterMainMenuState(context)
     }
 
     fun enterReportClassState(context: Context, type: EventClass) {
@@ -101,20 +66,62 @@ class ReportEventClassHandlers(
                     """
                         Нажми "Сейчас", если надо сохранить событие сейчас (с точностью до секунд).
                         Либо введи время в удобном формате
-                        - `8:30`
-                        - `19:30`
-                        - `1:05 PM`
-                        - `вчера в 22:08`
-                        - `3 часа назад`
+                        - <code>8:30</code>
+                        - <code>19:30</code>
+                        - <code>1:05 PM</code>
+                        - <code>вчера в 22:08</code>
+                        - <code>3 часа назад</code>
                     """.trimIndent(),
                     replyMarkup = buttonConverter.serialize(keyboard),
-                    parseMode = ParseMode.MARKDOWN_V2,
+                    parseMode = ParseMode.HTML,
                 )
             }
             EventType.SEGMENT, EventType.COUNT -> {
                 handleNotSupported(context)
             }
         }
+    }
+
+    private fun handleEvent(context: Context, begin: Instant? = null, end: Instant? = null, count: Long? = null) {
+        val ecid = (context.user.stateData as ReportClassState).ecid
+        val type = eventClassRepository.findById(ecid).unwrap()
+        if (type != null) {
+            val event = Event(
+                ecid = ecid,
+                begin = begin,
+                end = end,
+                count = count,
+                comment = null,
+            ).let { eventRepository.save(it) }
+
+            val keyboard = buildKeyboard {
+                add(BackButton())
+                add(EditEventButton(event.eid))
+                add(AddCommentButton(event.eid))
+            }
+            telegram.sendMessage(
+                context.message.chat.id,
+                "Сохранили событие: $event",
+                replyMarkup = buttonConverter.serialize(keyboard)
+            )
+            commonMessages.enterMainMenuState(context)
+        } else {
+            handleNotFound(context)
+        }
+    }
+
+    private fun handleNow(context: Context) {
+        val now = Instant.now()
+        handleEvent(context, begin = now, end = now)
+    }
+
+    private fun handleCancel(context: Context) {
+        commonMessages.enterMainMenuState(context)
+    }
+
+    private fun handleNotFound(context: Context) {
+        telegram.sendMessage(context.message.chat.id, "Редактируемое событие пропало :(")
+        commonMessages.enterMainMenuState(context)
     }
 
     private fun handleNotSupported(context: Context) {

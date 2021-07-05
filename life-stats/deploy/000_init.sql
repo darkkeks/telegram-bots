@@ -17,10 +17,10 @@ CREATE TABLE event_classes
 
 CREATE TABLE events
 (
-    eid   SERIAL NOT NULL PRIMARY KEY,
-    ecid  INT    NOT NULL,
-    begin TIMESTAMP DEFAULT NULL,
-    "end" TIMESTAMP DEFAULT NULL,
-    count INT       DEFAULT NULL,
-    data  text      DEFAULT NULL
+    eid     SERIAL NOT NULL PRIMARY KEY,
+    ecid    INT    NOT NULL,
+    begin   TIMESTAMP DEFAULT NULL,
+    "end"   TIMESTAMP DEFAULT NULL,
+    count   INT       DEFAULT NULL,
+    comment text      DEFAULT NULL
 );
