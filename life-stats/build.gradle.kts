@@ -5,7 +5,7 @@ plugins {
 }
 
 springBoot {
-    mainClass.set("ru.darkkeks.telegram.lifestats.ApplicationKt")
+    mainClass.set("ru.darkkeks.telegram.lifestats.LifeStatsAppKt")
 }
 
 dependencies {

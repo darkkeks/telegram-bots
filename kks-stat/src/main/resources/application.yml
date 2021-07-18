@@ -7,7 +7,7 @@ spring:
     sql-dialect: Postgres
 
   datasource:
-    url: jdbc:postgresql://postgres/kks
+    url: jdbc:postgresql://postgres-kks/kks
     username: postgres
     password: root
 

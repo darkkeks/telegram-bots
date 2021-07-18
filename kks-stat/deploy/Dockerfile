@@ -15,6 +15,6 @@ EXPOSE 8080
 RUN mkdir /app
 
 # expecting a single jar
-COPY --from=build /build/kks-stat/build/libs/*.jar /app/app.jar
+COPY --from=build /build/kks-stat/build/libs/*SNAPSHOT.jar /app/app.jar
 
 ENTRYPOINT ["java", "-Xmx512M", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]

@@ -4,7 +4,7 @@ spring.profiles.active: dev
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres-lifestats/lifestats
+    url: jdbc:postgresql://postgres-life/lifestats
     username: postgres
     password: root
 
