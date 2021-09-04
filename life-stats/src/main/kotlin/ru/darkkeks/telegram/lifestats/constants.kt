@@ -4,10 +4,6 @@ object Constants {
 
     const val MAX_CLASSES = 10
 
-
-    // main
-    const val MAIN_STATE = "main"
-
     // add event class
     const val NAME_STATE = "create__enter_name"
     const val DESCRIPTION_STATE = "create__enter_description"

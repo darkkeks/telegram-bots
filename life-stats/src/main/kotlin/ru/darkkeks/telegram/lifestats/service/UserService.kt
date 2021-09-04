@@ -1,13 +1,12 @@
 package ru.darkkeks.telegram.lifestats.service
 
 import org.springframework.stereotype.Component
+import ru.darkkeks.telegram.core.MAIN_STATE
+import ru.darkkeks.telegram.core.UserData
+import ru.darkkeks.telegram.core.UserDataProvider
 import ru.darkkeks.telegram.core.fromJson
 import ru.darkkeks.telegram.core.toJson
-import ru.darkkeks.telegram.lifestats.Constants.MAIN_STATE
-import ru.darkkeks.telegram.lifestats.StateData
 import ru.darkkeks.telegram.lifestats.User
-import ru.darkkeks.telegram.lifestats.UserData
-import ru.darkkeks.telegram.lifestats.UserDataProvider
 import ru.darkkeks.telegram.lifestats.UserRepository
 
 @Component

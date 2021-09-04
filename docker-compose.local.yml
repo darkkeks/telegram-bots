@@ -11,13 +11,13 @@ services:
       - BOT_TOKEN
       - YOUTUBE_KEY
 
-  mongo:
+  mongo-hse-remind:
     image: mongo:latest
     restart: unless-stopped
     volumes:
-      - mongo-data:/data/db
+      - mongo-data-hse-remind:/data/db
     ports:
-      - 27017:27017
+      - "27017:27017"
 
   postgres-kks:
     image: postgres:latest
@@ -29,7 +29,7 @@ services:
     volumes:
       - postgres-data-kks:/data/postgres
     ports:
-      - 5432:5432
+      - "5432:5432"
 
   postgres-lifestats:
     image: postgres:latest
@@ -41,10 +41,10 @@ services:
     volumes:
       - postgres-data-lifestats:/data/postgres
     ports:
-      - 5432:5432
+      - "5432:5432"
 
 volumes:
-  mongo-data:
+  mongo-data-hse-remind:
   postgres-data-kks:
   postgres-data-lifestats:
 

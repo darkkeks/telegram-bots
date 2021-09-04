@@ -1,13 +1,13 @@
 package ru.darkkeks.telegram.lifestats.handlers
 
 import org.springframework.stereotype.Component
+import ru.darkkeks.telegram.core.ButtonConverter
+import ru.darkkeks.telegram.core.Context
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.buildKeyboard
-import ru.darkkeks.telegram.lifestats.ButtonConverter
-import ru.darkkeks.telegram.lifestats.Context
+import ru.darkkeks.telegram.core.resetState
 import ru.darkkeks.telegram.lifestats.EventClassesButton
 import ru.darkkeks.telegram.lifestats.ReportButton
-import ru.darkkeks.telegram.lifestats.resetState
 import ru.darkkeks.telegram.lifestats.service.UserService
 
 @Component

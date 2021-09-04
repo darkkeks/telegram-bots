@@ -12,7 +12,7 @@ telegram:
   token: ${BOT_TOKEN}
 
 ---
-spring.profiles: dev
+spring.config.activate.on-profile: dev
 
 spring:
   datasource:

@@ -1,27 +1,27 @@
 package ru.darkkeks.telegram.lifestats.handlers
 
 import org.springframework.stereotype.Component
+import ru.darkkeks.telegram.core.ButtonConverter
+import ru.darkkeks.telegram.core.Context
+import ru.darkkeks.telegram.core.HandlerFactory
+import ru.darkkeks.telegram.core.MessageContext
+import ru.darkkeks.telegram.core.StateData
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.buildKeyboard
+import ru.darkkeks.telegram.core.handlerList
+import ru.darkkeks.telegram.core.setState
 import ru.darkkeks.telegram.core.unwrap
+import ru.darkkeks.telegram.core.withState
 import ru.darkkeks.telegram.lifestats.AddCommentButton
 import ru.darkkeks.telegram.lifestats.BackButton
-import ru.darkkeks.telegram.lifestats.ButtonConverter
 import ru.darkkeks.telegram.lifestats.CancelButton
 import ru.darkkeks.telegram.lifestats.Constants.EDIT_EVENT_COMMENT_STATE
 import ru.darkkeks.telegram.lifestats.Constants.EDIT_EVENT_STATE
-import ru.darkkeks.telegram.lifestats.Context
 import ru.darkkeks.telegram.lifestats.EditEventButton
 import ru.darkkeks.telegram.lifestats.Event
 import ru.darkkeks.telegram.lifestats.EventClassRepository
 import ru.darkkeks.telegram.lifestats.EventRepository
-import ru.darkkeks.telegram.lifestats.HandlerFactory
-import ru.darkkeks.telegram.lifestats.MessageContext
-import ru.darkkeks.telegram.lifestats.StateData
 import ru.darkkeks.telegram.lifestats.service.UserService
-import ru.darkkeks.telegram.lifestats.setState
-import ru.darkkeks.telegram.lifestats.util.handlerList
-import ru.darkkeks.telegram.lifestats.util.withState
 import java.time.Duration
 
 @Component

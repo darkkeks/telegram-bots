@@ -1,4 +1,4 @@
-package ru.darkkeks.telegram.lifestats
+package ru.darkkeks.telegram.core
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.springframework.stereotype.Component
@@ -10,29 +10,26 @@ import ru.darkkeks.telegram.core.api.Message
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.api.Update
 import ru.darkkeks.telegram.core.api.UpdateHandler
-import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.core.handle_wip.ButtonState
 import ru.darkkeks.telegram.core.handle_wip.ButtonWithText
 import ru.darkkeks.telegram.core.handle_wip.serialize
 import ru.darkkeks.telegram.core.serialize.ButtonBuffer
 import ru.darkkeks.telegram.core.serialize.Registry
-import ru.darkkeks.telegram.core.toJsonPretty
-import ru.darkkeks.telegram.lifestats.Constants.MAIN_STATE
 
-class RoutingMessageHandler(
+class RoutingUpdateHandler(
     private val telegram: Telegram,
     private val userDataProvider: UserDataProvider,
     private val buttonConverter: ButtonConverter,
     private val handlers: List<Handler>,
 ) : UpdateHandler {
 
-    private val logger = createLogger<RoutingMessageHandler>()
+    private val logger = createLogger<RoutingUpdateHandler>()
 
     override fun handle(update: Update) {
         logger.info("Received update: {}", toJsonPretty(update))
         when {
             update.message != null -> {
-                val message = update.message!!
+                val message = update.message
                 val chat = message.chat
                 val user = message.from ?: return  // TODO
                 if (message.chat.type != ChatType.PRIVATE) {
@@ -51,7 +48,7 @@ class RoutingMessageHandler(
                 }
             }
             update.callbackQuery != null -> {
-                val callbackQuery = update.callbackQuery!!
+                val callbackQuery = update.callbackQuery
                 val message = callbackQuery.message ?: return  // TODO
                 val chat = message.chat
                 if (message.chat.type != ChatType.PRIVATE) {
@@ -134,6 +131,8 @@ data class UserData(
     val stateData: StateData?,
 )
 
+const val MAIN_STATE = "main"
+
 fun UserData.resetState() = setState(MAIN_STATE)
 
 fun UserData.setState(state: String): UserData {
@@ -157,17 +156,22 @@ open class Context(
     val user: UserData,
 )
 
-class MessageContext(
+open class MessageContext(
     message: Message,
-    userData: UserData,
-) : Context(message, userData)
+    user: UserData,
+) : Context(message, user)
+
+class CommandContext(
+    messageContext: MessageContext,
+    val args: List<String>,
+) : Context(messageContext.message, messageContext.user)
 
 open class CallbackContext(
     message: Message,
-    userData: UserData,
+    user: UserData,
     val callbackQuery: CallbackQuery,
     private var answered: Boolean = false,
-) : Context(message, userData) {
+) : Context(message, user) {
     private val canAnswer
         get() = !answered
 

@@ -1,29 +1,29 @@
 package ru.darkkeks.telegram.lifestats.handlers
 
 import org.springframework.stereotype.Component
+import ru.darkkeks.telegram.core.ButtonConverter
+import ru.darkkeks.telegram.core.CallbackButtonContext
+import ru.darkkeks.telegram.core.Context
+import ru.darkkeks.telegram.core.HandlerFactory
+import ru.darkkeks.telegram.core.MAIN_STATE
 import ru.darkkeks.telegram.core.api.Telegram
 import ru.darkkeks.telegram.core.buildKeyboard
+import ru.darkkeks.telegram.core.handlerList
 import ru.darkkeks.telegram.core.unwrap
 import ru.darkkeks.telegram.lifestats.AddCommentButton
-import ru.darkkeks.telegram.lifestats.ButtonConverter
-import ru.darkkeks.telegram.lifestats.CallbackButtonContext
-import ru.darkkeks.telegram.lifestats.Constants.MAIN_STATE
+import ru.darkkeks.telegram.lifestats.BackButton
 import ru.darkkeks.telegram.lifestats.Constants.MAX_CLASSES
-import ru.darkkeks.telegram.lifestats.Context
 import ru.darkkeks.telegram.lifestats.CreateClassButton
 import ru.darkkeks.telegram.lifestats.EditButton
 import ru.darkkeks.telegram.lifestats.EditClassButton
-import ru.darkkeks.telegram.lifestats.EventClassesButton
-import ru.darkkeks.telegram.lifestats.EventClass
-import ru.darkkeks.telegram.lifestats.ReportClassButton
-import ru.darkkeks.telegram.lifestats.EventClassRepository
-import ru.darkkeks.telegram.lifestats.HandlerFactory
-import ru.darkkeks.telegram.lifestats.BackButton
 import ru.darkkeks.telegram.lifestats.EditEventButton
+import ru.darkkeks.telegram.lifestats.EventClass
+import ru.darkkeks.telegram.lifestats.EventClassRepository
+import ru.darkkeks.telegram.lifestats.EventClassesButton
 import ru.darkkeks.telegram.lifestats.RemoveButton
 import ru.darkkeks.telegram.lifestats.RemoveClassButton
 import ru.darkkeks.telegram.lifestats.ReportButton
-import ru.darkkeks.telegram.lifestats.util.handlerList
+import ru.darkkeks.telegram.lifestats.ReportClassButton
 
 @Component
 class MainHandlers(

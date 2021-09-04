@@ -1,12 +1,6 @@
-package ru.darkkeks.telegram.lifestats.util
+package ru.darkkeks.telegram.core
 
 import ru.darkkeks.telegram.core.handle_wip.ButtonState
-import ru.darkkeks.telegram.lifestats.CallbackButtonContext
-import ru.darkkeks.telegram.lifestats.CallbackContext
-import ru.darkkeks.telegram.lifestats.CallbackHandler
-import ru.darkkeks.telegram.lifestats.Handler
-import ru.darkkeks.telegram.lifestats.MessageContext
-import ru.darkkeks.telegram.lifestats.MessageHandler
 import kotlin.reflect.KClass
 
 fun handlerList(state: String? = null, block: HandlerListBuilder.() -> Unit): List<Handler> {
@@ -31,12 +25,27 @@ class HandlerListBuilder(
 
     fun add(handler: Handler) = handlers.add(handler)
 
-    fun command(command: String, block: (MessageContext) -> Unit) {
+    fun command(command: String, block: (CommandContext) -> Unit) {
         val handler = object : MessageHandler {
             override fun matches(context: MessageContext): Boolean {
                 val text = context.message.text ?: return false
-                return context.user.state == state
-                        && text.trim().startsWith("/$command")
+                return checkState(context) && text.trim().startsWith("/$command")
+            }
+
+            override fun handle(context: MessageContext) {
+                val text = context.message.text!!
+                val parts = text.split("""\s""".toRegex())
+                val args = parts.drop(1)
+                block(CommandContext(context, args))
+            }
+        }
+        handlers.add(handler)
+    }
+
+    fun document(block: (MessageContext) -> Unit) {
+        val handler = object : MessageHandler {
+            override fun matches(context: MessageContext): Boolean {
+                return checkState(context) && context.message.document != null
             }
 
             override fun handle(context: MessageContext) = block(context)
@@ -47,7 +56,7 @@ class HandlerListBuilder(
     fun <T : ButtonState> callback(type: KClass<T>, block: (CallbackButtonContext<T>) -> Unit) {
         val handler = object : CallbackHandler {
             override fun matches(context: CallbackContext): Boolean {
-                return context.user.state == state
+                return checkState(context)
                         && context is CallbackButtonContext<*>
                         && type.isInstance(context.state)
             }
@@ -68,7 +77,7 @@ class HandlerListBuilder(
      */
     fun fallback(block: (MessageContext) -> Unit) {
         val handler = object : MessageHandler {
-            override fun matches(context: MessageContext) = context.user.state == state
+            override fun matches(context: MessageContext) = checkState(context)
             override fun handle(context: MessageContext) = block(context)
         }
         handlers.add(handler)
@@ -79,9 +88,13 @@ class HandlerListBuilder(
      */
     fun fallbackCallback(block: (CallbackContext) -> Unit) {
         val handler = object : CallbackHandler {
-            override fun matches(context: CallbackContext) = context.user.state == state
+            override fun matches(context: CallbackContext) = checkState(context)
             override fun handle(context: CallbackContext) = block(context)
         }
         handlers.add(handler)
+    }
+
+    private fun checkState(context: Context): Boolean {
+        return state == null || context.user.state == state
     }
 }
