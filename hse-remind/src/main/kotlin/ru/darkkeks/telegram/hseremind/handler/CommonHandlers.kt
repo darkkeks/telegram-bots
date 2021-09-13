@@ -6,6 +6,7 @@ import okhttp3.RequestBody
 import org.springframework.stereotype.Component
 import ru.darkkeks.telegram.core.Context
 import ru.darkkeks.telegram.core.HandlerFactory
+import ru.darkkeks.telegram.core.MAIN_STATE
 import ru.darkkeks.telegram.core.api.Document
 import ru.darkkeks.telegram.core.api.ParseMode
 import ru.darkkeks.telegram.core.api.Telegram
@@ -14,6 +15,8 @@ import ru.darkkeks.telegram.core.api.TelegramFiles
 import ru.darkkeks.telegram.core.createLogger
 import ru.darkkeks.telegram.core.fromJson
 import ru.darkkeks.telegram.core.handlerList
+import ru.darkkeks.telegram.core.unwrap
+import ru.darkkeks.telegram.core.withState
 import ru.darkkeks.telegram.hseremind.UserConfigService
 import ru.darkkeks.telegram.hseremind.UserRepository
 import ru.darkkeks.telegram.hseremind.UserSpec
@@ -34,30 +37,50 @@ class MainHandlers(
     private val exampleConfig = "https://github.com/DarkKeks/telegram-bots/blob/master/hse-remind/src/main/resources/example_config.yml"
 
     override fun handlers() = handlerList {
-        command("start", this@MainHandlers::help)
-        command("help", this@MainHandlers::help)
+        withState(MAIN_STATE) {
+            command("start", this@MainHandlers::help)
+            command("help", this@MainHandlers::help)
 
-        command("import") { context ->
-            telegram.sendMessage(context.message.chat.id, """
+            command("chat_id") { context ->
+                val chat = context.message.chat
+                telegram.sendMessage(chat.id, """
+                id этого чата: <pre>${chat.id}</pre>
+            """.trimIndent(), parseMode = ParseMode.HTML)
+            }
+
+            command("import") { context ->
+                telegram.sendMessage(context.message.chat.id, """
                 Скинь конфиг файликом. Пример конфига <a href="$exampleConfig">тут</a>.
             """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
-        }
+            }
 
-        command("export") { context ->
-            export(context.message.chat.id, format = context.args.firstOrNull())
-        }
+            command("export") { context ->
+                export(context.message.chat.id, format = context.args.firstOrNull())
+            }
 
-        document { context ->
-            try {
-                importDocument(context.message.chat.id, context.message.document!!)
-            } catch (e: Exception) {
-                logger.error("Document import failed", e)
-                telegram.sendMessage(context.message.chat.id, """
+//            command("show") { context ->
+//                val user = userRepository.findById(context.user.uid).unwrap()
+//                if (user == null) {
+//                    noConfig(context.message.chat.id)
+//                } else {
+//
+//                }
+//            }
+
+            document { context ->
+                try {
+                    importDocument(context.message.chat.id, context.message.document!!)
+                } catch (e: Exception) {
+                    logger.error("Document import failed", e)
+                    telegram.sendMessage(context.message.chat.id, """
                     Не получилось импортировать файлик. 😕 Напиши @darkkeks
                     $e
                 """.trimIndent())
+                }
             }
         }
+
+//        withState()
 
         fallback { context ->
             cantProcess(context.message.chat.id)
@@ -94,10 +117,7 @@ class MainHandlers(
 
         val userOptional = userRepository.findById(chatId)
         if (userOptional.isEmpty) {
-            telegram.sendMessage(chatId, """
-                Похоже у тебя еще нету конфига.
-                Ты можешь создать его по примеру <a href="$exampleConfig">отсюда</a>, а потом импортировать с помощью <b>/import</>. 😉
-            """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
+            noConfig(chatId)
             return
         }
 
@@ -128,6 +148,13 @@ class MainHandlers(
                 Напиши пожалуйста @darkkeks. Твой репорт поможет найти проблему сразу, а не через inf дней.
             """.trimIndent(), parseMode = ParseMode.MARKDOWN_V2)
         }
+    }
+
+    fun noConfig(chatId: Long) {
+        telegram.sendMessage(chatId, """
+            Похоже у тебя еще нету конфига.
+            Ты можешь создать его по примеру <a href="$exampleConfig">отсюда</a>, а потом импортировать с помощью <b>/import</>. 😉
+        """.trimIndent(), parseMode = ParseMode.HTML, disableWebPagePreview = true)
     }
 
     fun cantProcess(chatId: Long) {
