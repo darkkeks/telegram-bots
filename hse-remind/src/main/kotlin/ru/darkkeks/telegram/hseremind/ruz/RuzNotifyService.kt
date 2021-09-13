@@ -50,6 +50,14 @@ class RuzNotifyService(
         logger.warn("Exception during notify iteration", e)
     }
 
+    fun getTimeBeforeLecture(item: ScheduleItem): Duration {
+        val isOnline = "online" in item.auditorium.lowercase()
+        return when {
+            isOnline -> Duration.ofMinutes(10)
+            else -> Duration.ofMinutes(30)
+        }
+    }
+
     fun processItem(
         user: User,
         chat: ChatSpec,
@@ -64,12 +72,11 @@ class RuzNotifyService(
         if (rule.filter == null ||
             itemFilterService.shouldNotify(item, rule.filter, LocalDateTime.of(lectureDate, lectureTime))
         ) {
-
             val lectureStart = LocalDateTime.of(lectureDate, lectureTime)
 
             // Lecture starts 10 minutes (or less) from now
             if (currentTime.isBefore(lectureStart) &&
-                Duration.between(currentTime, lectureStart) <= Duration.ofMinutes(10)
+                Duration.between(currentTime, lectureStart) <= getTimeBeforeLecture(item)
             ) {
 
                 val record = NotificationRecord(user.id, chat, rule, item.lessonOid)
