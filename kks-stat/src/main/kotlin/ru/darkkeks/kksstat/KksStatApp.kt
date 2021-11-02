@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import ru.darkkeks.kksstat.schema.Tables.SUBMISSIONS
 import ru.darkkeks.telegram.core.createLogger
@@ -25,24 +26,41 @@ fun main(args: Array<String>) {
     SpringApplication.run(KksStatApp::class.java, *args)
 }
 
+object EjudgeConstants {
+    private const val DEFAULT_YEAR = 2021
+
+    private val CONTEST_IDS_BY_YEAR = mapOf(
+        2020 to (130..141).toSet(),
+        2021 to (201..209).toSet() + setOf(2010, 2021),
+    )
+
+    fun getContestIds(year: Int?): Set<Int>? {
+        return CONTEST_IDS_BY_YEAR[year ?: DEFAULT_YEAR]
+    }
+}
+
 @RestController
 @RequestMapping("/api")
 class KksStatController(
-    val standingsRepository: StandingsRepository
+    val standingsRepository: StandingsRepository,
 ) {
     val logger = createLogger<KksStatController>()
 
     val emptyScore = TaskScore(null, "Not submitted")
 
     @GetMapping("/get")
-    fun getStandings(): StandingsResponse {
-        return StandingsResponse(getMergedStandings())
+    fun getStandings(@RequestParam("year") year: Int?): ResponseEntity<Any> {
+        val contestIds = EjudgeConstants.getContestIds(year)
+            ?: return ResponseEntity.badRequest().body("Year value is invalid")
+        return ResponseEntity.ok(StandingsResponse(getMergedStandings(contestIds)))
     }
 
     @GetMapping("/get/flat")
-    fun getFlatStandings(): FlatStandingsResponse {
-        val standings = getMergedStandings()
-        return FlatStandingsResponse(flattenStandings(standings))
+    fun getFlatStandings(@RequestParam("year") year: Int?): ResponseEntity<Any> {
+        val contestIds = EjudgeConstants.getContestIds(year)
+            ?: return ResponseEntity.badRequest().body("Year value is invalid")
+        val standings = getMergedStandings(contestIds)
+        return ResponseEntity.ok(FlatStandingsResponse(flattenStandings(standings)))
     }
 
     fun flattenStandings(standings: Standings): FlatStandings {
@@ -51,8 +69,7 @@ class KksStatController(
             .map { it.status }
             .distinct()
             .withIndex()
-            .map { (index, value) -> index to value }
-            .toMap()
+            .associate { (index, value) -> index to value }
         val indexByStatus = statuses
             .map { (index, value) -> value to index }
             .toMap()
@@ -75,8 +92,8 @@ class KksStatController(
 
     }
 
-    fun getMergedStandings(): Standings {
-        val groups = standingsRepository.findLatest()
+    fun getMergedStandings(contestIds: Set<Int>): Standings {
+        val groups = standingsRepository.findLatest(contestIds)
         if (groups.isEmpty()) {
             return Standings(listOf(), listOf())
         }
@@ -128,7 +145,7 @@ class KksStatController(
 @Component
 class StandingsRepository(
     val create: DSLContext,
-    val mapper: ObjectMapper
+    val mapper: ObjectMapper,
 ) {
     fun save(record: SubmissionRecord) {
         val standings = mapper.writeValueAsString(record.standings)
@@ -141,11 +158,12 @@ class StandingsRepository(
             .execute()
     }
 
-    fun findLatest(): List<SubmissionRecord> {
+    fun findLatest(contestIds: Set<Int>): List<SubmissionRecord> {
         return create
             .select(SUBMISSIONS.LOGIN, SUBMISSIONS.CONTEST_ID, SUBMISSIONS.STANDINGS, SUBMISSIONS.SUBMIT_TIME)
             .distinctOn(SUBMISSIONS.CONTEST_ID)
             .from(SUBMISSIONS)
+            .where(SUBMISSIONS.CONTEST_ID.`in`(contestIds))
             .orderBy(SUBMISSIONS.CONTEST_ID, SUBMISSIONS.SUBMIT_TIME.desc())
             .fetch { record ->
                 SubmissionRecord(
@@ -162,28 +180,28 @@ data class SubmissionRecord(
     val submitTime: LocalDateTime,
     val login: String,
     val contestId: Int,
-    val standings: Standings
+    val standings: Standings,
 )
 
 data class StandingsResponse(
-    val standings: Standings
+    val standings: Standings,
 )
 
 data class GroupStandings(
     @JsonProperty("contest_id")
     val contestId: Int,
     val login: String,
-    val standings: Standings
+    val standings: Standings,
 )
 
 data class Standings(
     val tasks: List<TaskInfo>,
-    val rows: List<StandingsRow>
+    val rows: List<StandingsRow>,
 )
 
 data class TaskInfo(
     val name: String,
-    val contest: String
+    val contest: String,
 )
 
 data class StandingsRow(
@@ -195,22 +213,22 @@ data class StandingsRow(
     val solved: Int,
     val score: Int,
     @JsonProperty("is_self")
-    val isSelf: Boolean
+    val isSelf: Boolean,
 )
 
 data class TaskScore(
     val score: String?,
-    val status: String
+    val status: String,
 )
 
 data class FlatStandingsResponse(
-    val standings: FlatStandings
+    val standings: FlatStandings,
 )
 
 data class FlatStandings(
     val tasks: List<TaskInfo>,
     val rows: List<FlatStandingsRow>,
-    val statuses: Map<Int, String>
+    val statuses: Map<Int, String>,
 )
 
 data class FlatStandingsRow(
@@ -223,5 +241,5 @@ data class FlatStandingsRow(
     @JsonProperty("is_self")
     val isSelf: Boolean,
     val scores: List<Int?>,
-    val statuses: List<Int>
+    val statuses: List<Int>,
 )
