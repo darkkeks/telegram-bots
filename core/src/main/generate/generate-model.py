@@ -69,7 +69,7 @@ def to_camel_case(name):
 
 
 def download_api_docs():
-    return requests.get('https://core.telegram.org/bots/api').text
+    return requests.get('https://core.telegram.org/bots/api', timeout=5).text
 
 
 def generate_model(html):

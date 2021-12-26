@@ -86,7 +86,13 @@ data class Update(
      *  A chat member's status was updated in a chat. The bot must be an administrator in the chat and must explicitly
      *  specify “chat_member” in the list of allowed_updates to receive these updates.
      */
-    val chatMember: ChatMemberUpdated? = null
+    val chatMember: ChatMemberUpdated? = null,
+
+    /**
+     *  A request to join the chat has been sent. The bot must have the can_invite_users administrator right in the
+     *  chat to receive these updates.
+     */
+    val chatJoinRequest: ChatJoinRequest? = null
 )
 
 
@@ -345,6 +351,12 @@ data class Chat(
     val bio: String? = null,
 
     /**
+     *  True, if privacy settings of the other party in the private chat allows to use tg://user?id=<user_id> links
+     *  only in chats with the user. Returned only in getChat.
+     */
+    val hasPrivateForwards: Boolean? = null,
+
+    /**
      *  Description, for groups, supergroups and channel chats. Returned only in getChat.
      */
     val description: String? = null,
@@ -365,8 +377,8 @@ data class Chat(
     val permissions: ChatPermissions? = null,
 
     /**
-     *  For supergroups, the minimum allowed delay between consecutive messages sent by each unpriviledged user.
-     *  Returned only in getChat.
+     *  For supergroups, the minimum allowed delay between consecutive messages sent by each unpriviledged user; in
+     *  seconds. Returned only in getChat.
      */
     val slowModeDelay: Int? = null,
 
@@ -375,6 +387,11 @@ data class Chat(
      *  getChat.
      */
     val messageAutoDeleteTime: Int? = null,
+
+    /**
+     *  True, if messages from the chat can't be forwarded to other chats. Returned only in getChat.
+     */
+    val hasProtectedContent: Boolean? = null,
 
     /**
      *  For supergroups, name of group sticker set. Returned only in getChat.
@@ -412,14 +429,16 @@ data class Message(
     val messageId: Int,
 
     /**
-     *  Sender, empty for messages sent to channels
+     *  Sender of the message; empty for messages sent to channels. For backward compatibility, the field contains a
+     *  fake sender user in non-channel chats, if the message was sent on behalf of a chat.
      */
     val from: User? = null,
 
     /**
-     *  Sender of the message, sent on behalf of a chat. The channel itself for channel messages. The supergroup itself
-     *  for messages from anonymous group administrators. The linked channel for messages automatically forwarded to
-     *  the discussion group
+     *  Sender of the message, sent on behalf of a chat. For example, the channel itself for channel posts, the
+     *  supergroup itself for messages from anonymous group administrators, the linked channel for messages
+     *  automatically forwarded to the discussion group.  For backward compatibility, the field from contains a fake
+     *  sender user in non-channel chats, if the message was sent on behalf of a chat.
      */
     val senderChat: Chat? = null,
 
@@ -466,6 +485,11 @@ data class Message(
     val forwardDate: Int? = null,
 
     /**
+     *  True, if the message is a channel post that was automatically forwarded to the connected discussion group
+     */
+    val isAutomaticForward: Boolean? = null,
+
+    /**
      *  For replies, the original message. Note that the Message object in this field will not contain further
      *  reply_to_message fields even if it itself is a reply.
      */
@@ -480,6 +504,11 @@ data class Message(
      *  Date the message was last edited in Unix time
      */
     val editDate: Int? = null,
+
+    /**
+     *  True, if the message can't be forwarded
+     */
+    val hasProtectedContent: Boolean? = null,
 
     /**
      *  The unique identifier of a media message group this message belongs to
@@ -788,7 +817,7 @@ data class PhotoSize(
     val height: Int,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -841,7 +870,7 @@ data class Animation(
     val mimeType: String? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -889,7 +918,7 @@ data class Audio(
     val mimeType: String? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null,
 
@@ -932,7 +961,7 @@ data class Document(
     val mimeType: String? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -985,7 +1014,7 @@ data class Video(
     val mimeType: String? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -1023,7 +1052,7 @@ data class VideoNote(
     val thumb: PhotoSize? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -1056,7 +1085,7 @@ data class Voice(
     val mimeType: String? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -1247,7 +1276,7 @@ data class Location(
     val horizontalAccuracy: Double? = null,
 
     /**
-     *  Time relative to the message sending date, during which the location can be updated, in seconds. For active
+     *  Time relative to the message sending date, during which the location can be updated; in seconds. For active
      *  live locations only.
      */
     val livePeriod: Int? = null,
@@ -1337,7 +1366,7 @@ data class ProximityAlertTriggered(
 data class MessageAutoDeleteTimerChanged(
 
     /**
-     *  New auto-delete time for messages in the chat
+     *  New auto-delete time for messages in the chat; in seconds
      */
     val messageAutoDeleteTime: Int
 )
@@ -1367,7 +1396,7 @@ class VoiceChatStarted
 data class VoiceChatEnded(
 
     /**
-     *  Voice chat duration; in seconds
+     *  Voice chat duration in seconds
      */
     val duration: Int
 )
@@ -1421,7 +1450,7 @@ data class File(
     val fileUniqueId: String,
 
     /**
-     *  File size, if known
+     *  File size in bytes, if known
      */
     val fileSize: Int? = null,
 
@@ -1572,7 +1601,8 @@ data class InlineKeyboardButton(
     val text: String,
 
     /**
-     *  HTTP or tg:// url to be opened when button is pressed
+     *  HTTP or tg:// url to be opened when the button is pressed. Links tg://user?id=<user_id> can be used to mention
+     *  a user by their ID without using a username, if this is allowed by their privacy settings.
      */
     val url: String? = null,
 
@@ -1611,7 +1641,8 @@ data class InlineKeyboardButton(
     val callbackGame: CallbackGame? = null,
 
     /**
-     *  Specify True, to send a Pay button.NOTE: This type of button must always be the first button in the first row.
+     *  Specify True, to send a Pay button.NOTE: This type of button must always be the first button in the first row
+     *  and can only be used in invoice messages.
      */
     val pay: Boolean? = null
 )
@@ -1775,6 +1806,11 @@ data class ChatInviteLink(
     val creator: User,
 
     /**
+     *  True, if users joining the chat via the link need to be approved by chat administrators
+     */
+    val createsJoinRequest: Boolean,
+
+    /**
      *  True, if the link is primary
      */
     val isPrimary: Boolean,
@@ -1785,6 +1821,11 @@ data class ChatInviteLink(
     val isRevoked: Boolean,
 
     /**
+     *  Invite link name
+     */
+    val name: String? = null,
+
+    /**
      *  Point in time (Unix timestamp) when the link will expire or has been expired
      */
     val expireDate: Int? = null,
@@ -1793,7 +1834,12 @@ data class ChatInviteLink(
      *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
      *  link; 1-99999
      */
-    val memberLimit: Int? = null
+    val memberLimit: Int? = null,
+
+    /**
+     *  Number of pending join requests created using this link
+     */
+    val pendingJoinRequestCount: Int? = null
 )
 
 
@@ -1820,14 +1866,14 @@ data class ChatMemberOwner(
     val user: User,
 
     /**
-     *  Custom title for this user
-     */
-    val customTitle: String,
-
-    /**
      *  True, if the user's presence in the chat is hidden
      */
-    val isAnonymous: Boolean
+    val isAnonymous: Boolean,
+
+    /**
+     *  Custom title for this user
+     */
+    val customTitle: String? = null
 )
 
 
@@ -1852,11 +1898,6 @@ data class ChatMemberAdministrator(
     val canBeEdited: Boolean,
 
     /**
-     *  Custom title for this user
-     */
-    val customTitle: String,
-
-    /**
      *  True, if the user's presence in the chat is hidden
      */
     val isAnonymous: Boolean,
@@ -1867,16 +1908,6 @@ data class ChatMemberAdministrator(
      *  administrator privilege
      */
     val canManageChat: Boolean,
-
-    /**
-     *  True, if the administrator can post in the channel; channels only
-     */
-    val canPostMessages: Boolean,
-
-    /**
-     *  True, if the administrator can edit messages of other users and can pin messages; channels only
-     */
-    val canEditMessages: Boolean,
 
     /**
      *  True, if the administrator can delete messages of other users
@@ -1911,9 +1942,24 @@ data class ChatMemberAdministrator(
     val canInviteUsers: Boolean,
 
     /**
+     *  True, if the administrator can post in the channel; channels only
+     */
+    val canPostMessages: Boolean? = null,
+
+    /**
+     *  True, if the administrator can edit messages of other users and can pin messages; channels only
+     */
+    val canEditMessages: Boolean? = null,
+
+    /**
      *  True, if the user is allowed to pin messages; groups and supergroups only
      */
-    val canPinMessages: Boolean
+    val canPinMessages: Boolean? = null,
+
+    /**
+     *  Custom title for this user
+     */
+    val customTitle: String? = null
 )
 
 
@@ -1965,7 +2011,7 @@ data class ChatMemberRestricted(
     val canInviteUsers: Boolean,
 
     /**
-     *  True, if the user is allowed to pin messages; groups and supergroups only
+     *  True, if the user is allowed to pin messages
      */
     val canPinMessages: Boolean,
 
@@ -1995,7 +2041,7 @@ data class ChatMemberRestricted(
     val canAddWebPagePreviews: Boolean,
 
     /**
-     *  Date when restrictions will be lifted for this user; unix time
+     *  Date when restrictions will be lifted for this user; unix time. If 0, then the user is restricted forever
      */
     val untilDate: Int
 )
@@ -2034,7 +2080,7 @@ data class ChatMemberBanned(
     val user: User,
 
     /**
-     *  Date when restrictions will be lifted for this user; unix time
+     *  Date when restrictions will be lifted for this user; unix time. If 0, then the user is banned forever
      */
     val untilDate: Int
 )
@@ -2072,6 +2118,38 @@ data class ChatMemberUpdated(
 
     /**
      *  Chat invite link, which was used by the user to join the chat; for joining by invite link events only.
+     */
+    val inviteLink: ChatInviteLink? = null
+)
+
+
+/**
+ *  Represents a join request sent to a chat.
+ */
+data class ChatJoinRequest(
+
+    /**
+     *  Chat to which the request was sent
+     */
+    val chat: Chat,
+
+    /**
+     *  User that sent the join request
+     */
+    val from: User,
+
+    /**
+     *  Date the request was sent in Unix time
+     */
+    val date: Int,
+
+    /**
+     *  Bio of the user.
+     */
+    val bio: String? = null,
+
+    /**
+     *  Chat invite link that was used by the user to send the join request
      */
     val inviteLink: ChatInviteLink? = null
 )
@@ -2149,12 +2227,12 @@ data class ChatLocation(
 data class BotCommand(
 
     /**
-     *  Text of the command, 1-32 characters. Can contain only lowercase English letters, digits and underscores.
+     *  Text of the command; 1-32 characters. Can contain only lowercase English letters, digits and underscores.
      */
     val command: String,
 
     /**
-     *  Description of the command, 3-256 characters.
+     *  Description of the command; 1-256 characters.
      */
     val description: String
 )
@@ -2384,7 +2462,7 @@ data class InputMediaVideo(
     val height: Int? = null,
 
     /**
-     *  Video duration
+     *  Video duration in seconds
      */
     val duration: Int? = null,
 
@@ -2447,7 +2525,7 @@ data class InputMediaAnimation(
     val height: Int? = null,
 
     /**
-     *  Animation duration
+     *  Animation duration in seconds
      */
     val duration: Int? = null
 )
@@ -2554,7 +2632,7 @@ data class InputMediaDocument(
 
     /**
      *  Disables automatic server-side content type detection for files uploaded using multipart/form-data. Always
-     *  true, if the document is sent as part of an album.
+     *  True, if the document is sent as part of an album.
      */
     val disableContentTypeDetection: Boolean? = null
 ) : InputMedia
@@ -2568,8 +2646,8 @@ class InputFile
 
 
 /**
- *  A simple method for testing your bot's auth token. Requires no parameters. Returns basic information about the bot
- *  in form of a User object.
+ *  A simple method for testing your bot's authentication token. Requires no parameters. Returns basic information
+ *  about the bot in form of a User object.
  */
 class GetMeRequest
 
@@ -2613,7 +2691,8 @@ data class SendMessageRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in message text, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in message text, which can be specified instead of
+     *  parse_mode
      */
     val entities: List<MessageEntity>? = null,
 
@@ -2708,7 +2787,8 @@ data class CopyMessageRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the new caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the new caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -2764,7 +2844,8 @@ data class SendPhotoRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -2823,7 +2904,8 @@ data class SendAudioRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -2913,7 +2995,8 @@ data class SendDocumentRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -2999,7 +3082,8 @@ data class SendVideoRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -3086,7 +3170,8 @@ data class SendAnimationRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -3144,7 +3229,8 @@ data class SendVoiceRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -3392,8 +3478,8 @@ data class EditMessageLiveLocationRequest(
 
 
 /**
- *  Use this method to stop updating a live location message before live_period expires. On success, if the message was
- *  sent by the bot, the sent Message is returned, otherwise True is returned.
+ *  Use this method to stop updating a live location message before live_period expires. On success, if the message is
+ *  not an inline message, the edited Message is returned, otherwise True is returned.
  */
 data class StopMessageLiveLocationRequest(
 
@@ -3599,7 +3685,8 @@ data class SendPollRequest(
     val explanationParseMode: String? = null,
 
     /**
-     *  List of special entities that appear in the poll explanation, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the poll explanation, which can be specified instead
+     *  of parse_mode
      */
     val explanationEntities: List<MessageEntity>? = null,
 
@@ -3700,8 +3787,8 @@ data class SendChatActionRequest(
     /**
      *  Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text
      *  messages, upload_photo for photos, record_video or upload_video for videos, record_voice or upload_voice for
-     *  voice notes, upload_document for general files, find_location for location data, record_video_note or
-     *  upload_video_note for video notes.
+     *  voice notes, upload_document for general files, choose_sticker for stickers, find_location for location data,
+     *  record_video_note or upload_video_note for video notes.
      */
     val action: ChatAction
 )
@@ -3751,8 +3838,8 @@ data class GetFileRequest(
 /**
  *  Use this method to ban a user in a group, a supergroup or a channel. In the case of supergroups and channels, the
  *  user will not be able to return to the chat on their own using invite links, etc., unless unbanned first. The bot
- *  must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on
- *  success.
+ *  must be an administrator in the chat for this to work and must have the appropriate administrator rights. Returns
+ *  True on success.
  */
 data class BanChatMemberRequest(
 
@@ -3812,8 +3899,8 @@ data class UnbanChatMemberRequest(
 
 /**
  *  Use this method to restrict a user in a supergroup. The bot must be an administrator in the supergroup for this to
- *  work and must have the appropriate admin rights. Pass True for all permissions to lift restrictions from a user.
- *  Returns True on success.
+ *  work and must have the appropriate administrator rights. Pass True for all permissions to lift restrictions from a
+ *  user. Returns True on success.
  */
 data class RestrictChatMemberRequest(
 
@@ -3842,8 +3929,8 @@ data class RestrictChatMemberRequest(
 
 /**
  *  Use this method to promote or demote a user in a supergroup or a channel. The bot must be an administrator in the
- *  chat for this to work and must have the appropriate admin rights. Pass False for all boolean parameters to demote a
- *  user. Returns True on success.
+ *  chat for this to work and must have the appropriate administrator rights. Pass False for all boolean parameters to
+ *  demote a user. Returns True on success.
  */
 data class PromoteChatMemberRequest(
 
@@ -3942,8 +4029,46 @@ data class SetChatAdministratorCustomTitleRequest(
 
 
 /**
+ *  Use this method to ban a channel chat in a supergroup or a channel. Until the chat is unbanned, the owner of the
+ *  banned chat won't be able to send messages on behalf of any of their channels. The bot must be an administrator in
+ *  the supergroup or channel for this to work and must have the appropriate administrator rights. Returns True on
+ *  success.
+ */
+data class BanChatSenderChatRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Unique identifier of the target sender chat
+     */
+    val senderChatId: Long
+)
+
+
+/**
+ *  Use this method to unban a previously banned channel chat in a supergroup or channel. The bot must be an
+ *  administrator for this to work and must have the appropriate administrator rights. Returns True on success.
+ */
+data class UnbanChatSenderChatRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Unique identifier of the target sender chat
+     */
+    val senderChatId: Long
+)
+
+
+/**
  *  Use this method to set default chat permissions for all members. The bot must be an administrator in the group or a
- *  supergroup for this to work and must have the can_restrict_members admin rights. Returns True on success.
+ *  supergroup for this to work and must have the can_restrict_members administrator rights. Returns True on success.
  */
 data class SetChatPermissionsRequest(
 
@@ -3953,7 +4078,7 @@ data class SetChatPermissionsRequest(
     val chatId: Long,
 
     /**
-     *  New default chat permissions
+     *  A JSON-serialized object for new default chat permissions
      */
     val permissions: ChatPermissions
 )
@@ -3961,8 +4086,8 @@ data class SetChatPermissionsRequest(
 
 /**
  *  Use this method to generate a new primary invite link for a chat; any previously generated primary link is revoked.
- *  The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns
- *  the new invite link as String on success.
+ *  The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
+ *  Returns the new invite link as String on success.
  */
 data class ExportChatInviteLinkRequest(
 
@@ -3975,7 +4100,7 @@ data class ExportChatInviteLinkRequest(
 
 /**
  *  Use this method to create an additional invite link for a chat. The bot must be an administrator in the chat for
- *  this to work and must have the appropriate admin rights. The link can be revoked using the method
+ *  this to work and must have the appropriate administrator rights. The link can be revoked using the method
  *  revokeChatInviteLink. Returns the new invite link as ChatInviteLink object.
  */
 data class CreateChatInviteLinkRequest(
@@ -3986,6 +4111,11 @@ data class CreateChatInviteLinkRequest(
     val chatId: Long,
 
     /**
+     *  Invite link name; 0-32 characters
+     */
+    val name: String? = null,
+
+    /**
      *  Point in time (Unix timestamp) when the link will expire
      */
     val expireDate: Int? = null,
@@ -3994,14 +4124,20 @@ data class CreateChatInviteLinkRequest(
      *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
      *  link; 1-99999
      */
-    val memberLimit: Int? = null
+    val memberLimit: Int? = null,
+
+    /**
+     *  True, if users joining the chat via the link need to be approved by chat administrators. If True, member_limit
+     *  can't be specified
+     */
+    val createsJoinRequest: Boolean? = null
 )
 
 
 /**
  *  Use this method to edit a non-primary invite link created by the bot. The bot must be an administrator in the chat
- *  for this to work and must have the appropriate admin rights. Returns the edited invite link as a ChatInviteLink
- *  object.
+ *  for this to work and must have the appropriate administrator rights. Returns the edited invite link as a
+ *  ChatInviteLink object.
  */
 data class EditChatInviteLinkRequest(
 
@@ -4016,6 +4152,11 @@ data class EditChatInviteLinkRequest(
     val inviteLink: String,
 
     /**
+     *  Invite link name; 0-32 characters
+     */
+    val name: String? = null,
+
+    /**
      *  Point in time (Unix timestamp) when the link will expire
      */
     val expireDate: Int? = null,
@@ -4024,14 +4165,20 @@ data class EditChatInviteLinkRequest(
      *  Maximum number of users that can be members of the chat simultaneously after joining the chat via this invite
      *  link; 1-99999
      */
-    val memberLimit: Int? = null
+    val memberLimit: Int? = null,
+
+    /**
+     *  True, if users joining the chat via the link need to be approved by chat administrators. If True, member_limit
+     *  can't be specified
+     */
+    val createsJoinRequest: Boolean? = null
 )
 
 
 /**
  *  Use this method to revoke an invite link created by the bot. If the primary link is revoked, a new link is
  *  automatically generated. The bot must be an administrator in the chat for this to work and must have the
- *  appropriate admin rights. Returns the revoked invite link as ChatInviteLink object.
+ *  appropriate administrator rights. Returns the revoked invite link as ChatInviteLink object.
  */
 data class RevokeChatInviteLinkRequest(
 
@@ -4048,8 +4195,45 @@ data class RevokeChatInviteLinkRequest(
 
 
 /**
+ *  Use this method to approve a chat join request. The bot must be an administrator in the chat for this to work and
+ *  must have the can_invite_users administrator right. Returns True on success.
+ */
+data class ApproveChatJoinRequestRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Unique identifier of the target user
+     */
+    val userId: Int
+)
+
+
+/**
+ *  Use this method to decline a chat join request. The bot must be an administrator in the chat for this to work and
+ *  must have the can_invite_users administrator right. Returns True on success.
+ */
+data class DeclineChatJoinRequestRequest(
+
+    /**
+     *  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     */
+    val chatId: Long,
+
+    /**
+     *  Unique identifier of the target user
+     */
+    val userId: Int
+)
+
+
+/**
  *  Use this method to set a new profile photo for the chat. Photos can't be changed for private chats. The bot must be
- *  an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
+ *  an administrator in the chat for this to work and must have the appropriate administrator rights. Returns True on
+ *  success.
  */
 data class SetChatPhotoRequest(
 
@@ -4067,7 +4251,7 @@ data class SetChatPhotoRequest(
 
 /**
  *  Use this method to delete a chat photo. Photos can't be changed for private chats. The bot must be an administrator
- *  in the chat for this to work and must have the appropriate admin rights. Returns True on success.
+ *  in the chat for this to work and must have the appropriate administrator rights. Returns True on success.
  */
 data class DeleteChatPhotoRequest(
 
@@ -4080,7 +4264,8 @@ data class DeleteChatPhotoRequest(
 
 /**
  *  Use this method to change the title of a chat. Titles can't be changed for private chats. The bot must be an
- *  administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
+ *  administrator in the chat for this to work and must have the appropriate administrator rights. Returns True on
+ *  success.
  */
 data class SetChatTitleRequest(
 
@@ -4098,7 +4283,7 @@ data class SetChatTitleRequest(
 
 /**
  *  Use this method to change the description of a group, a supergroup or a channel. The bot must be an administrator
- *  in the chat for this to work and must have the appropriate admin rights. Returns True on success.
+ *  in the chat for this to work and must have the appropriate administrator rights. Returns True on success.
  */
 data class SetChatDescriptionRequest(
 
@@ -4116,8 +4301,8 @@ data class SetChatDescriptionRequest(
 
 /**
  *  Use this method to add a message to the list of pinned messages in a chat. If the chat is not a private chat, the
- *  bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' admin right in a
- *  supergroup or 'can_edit_messages' admin right in a channel. Returns True on success.
+ *  bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right
+ *  in a supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
  */
 data class PinChatMessageRequest(
 
@@ -4141,8 +4326,8 @@ data class PinChatMessageRequest(
 
 /**
  *  Use this method to remove a message from the list of pinned messages in a chat. If the chat is not a private chat,
- *  the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' admin right in a
- *  supergroup or 'can_edit_messages' admin right in a channel. Returns True on success.
+ *  the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator
+ *  right in a supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
  */
 data class UnpinChatMessageRequest(
 
@@ -4161,8 +4346,8 @@ data class UnpinChatMessageRequest(
 
 /**
  *  Use this method to clear the list of pinned messages in a chat. If the chat is not a private chat, the bot must be
- *  an administrator in the chat for this to work and must have the 'can_pin_messages' admin right in a supergroup or
- *  'can_edit_messages' admin right in a channel. Returns True on success.
+ *  an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a
+ *  supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
  */
 data class UnpinAllChatMessagesRequest(
 
@@ -4248,8 +4433,8 @@ data class GetChatMemberRequest(
 
 /**
  *  Use this method to set a new group sticker set for a supergroup. The bot must be an administrator in the chat for
- *  this to work and must have the appropriate admin rights. Use the field can_set_sticker_set optionally returned in
- *  getChat requests to check if the bot can use this method. Returns True on success.
+ *  this to work and must have the appropriate administrator rights. Use the field can_set_sticker_set optionally
+ *  returned in getChat requests to check if the bot can use this method. Returns True on success.
  */
 data class SetChatStickerSetRequest(
 
@@ -4267,8 +4452,8 @@ data class SetChatStickerSetRequest(
 
 /**
  *  Use this method to delete a group sticker set from a supergroup. The bot must be an administrator in the chat for
- *  this to work and must have the appropriate admin rights. Use the field can_set_sticker_set optionally returned in
- *  getChat requests to check if the bot can use this method. Returns True on success.
+ *  this to work and must have the appropriate administrator rights. Use the field can_set_sticker_set optionally
+ *  returned in getChat requests to check if the bot can use this method. Returns True on success.
  */
 data class DeleteChatStickerSetRequest(
 
@@ -4296,7 +4481,7 @@ data class AnswerCallbackQueryRequest(
     val text: String? = null,
 
     /**
-     *  If true, an alert will be shown by the client instead of a notification at the top of the chat screen. Defaults
+     *  If True, an alert will be shown by the client instead of a notification at the top of the chat screen. Defaults
      *  to false.
      */
     val showAlert: Boolean? = null,
@@ -4414,7 +4599,8 @@ data class EditMessageTextRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in message text, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in message text, which can be specified instead of
+     *  parse_mode
      */
     val entities: List<MessageEntity>? = null,
 
@@ -4463,7 +4649,8 @@ data class EditMessageCaptionRequest(
     val parseMode: ParseMode? = null,
 
     /**
-     *  List of special entities that appear in the caption, which can be specified instead of parse_mode
+     *  A JSON-serialized list of special entities that appear in the caption, which can be specified instead of
+     *  parse_mode
      */
     val captionEntities: List<MessageEntity>? = null,
 
@@ -4477,9 +4664,9 @@ data class EditMessageCaptionRequest(
 /**
  *  Use this method to edit animation, audio, document, photo, or video messages. If a message is part of a message
  *  album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a
- *  photo or a video otherwise. When an inline message is edited, a new file can't be uploaded. Use a previously
- *  uploaded file via its file_id or specify a URL. On success, if the edited message was sent by the bot, the edited
- *  Message is returned, otherwise True is returned.
+ *  photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously
+ *  uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the
+ *  edited Message is returned, otherwise True is returned.
  */
 data class EditMessageMediaRequest(
 
@@ -4541,8 +4728,7 @@ data class EditMessageReplyMarkupRequest(
 
 
 /**
- *  Use this method to stop a poll which was sent by the bot. On success, the stopped Poll with the final results is
- *  returned.
+ *  Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
  */
 data class StopPollRequest(
 
@@ -4638,7 +4824,7 @@ data class Sticker(
     val maskPosition: MaskPosition? = null,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int? = null
 )
@@ -5024,7 +5210,7 @@ data class AnswerInlineQueryRequest(
      *  the user to connect the bot to their YouTube account to adapt search results accordingly. To do this, it
      *  displays a 'Connect your YouTube account' button above the results, or even before showing any. The user
      *  presses the button, switches to a private chat with the bot and, in doing so, passes a start parameter that
-     *  instructs the bot to return an oauth link. Once done, the bot can offer a switch_inline button so that the user
+     *  instructs the bot to return an OAuth link. Once done, the bot can offer a switch_inline button so that the user
      *  can easily return to the chat where they wanted to use the bot's inline capabilities.
      */
     val switchPmParameter: String? = null
@@ -5120,7 +5306,7 @@ data class InlineQueryResultPhoto(
     val id: String,
 
     /**
-     *  A valid URL of the photo. Photo must be in jpeg format. Photo size must not exceed 5MB
+     *  A valid URL of the photo. Photo must be in JPEG format. Photo size must not exceed 5MB
      */
     val photoUrl: String,
 
@@ -5209,7 +5395,7 @@ data class InlineQueryResultGif(
     val gifHeight: Int? = null,
 
     /**
-     *  Duration of the GIF
+     *  Duration of the GIF in seconds
      */
     val gifDuration: Int? = null,
 
@@ -5288,7 +5474,7 @@ data class InlineQueryResultMpeg4Gif(
     val mpeg4Height: Int? = null,
 
     /**
-     *  Video duration
+     *  Video duration in seconds
      */
     val mpeg4Duration: Int? = null,
 
@@ -5362,7 +5548,7 @@ data class InlineQueryResultVideo(
     val mimeType: String,
 
     /**
-     *  URL of the thumbnail (jpeg only) for the video
+     *  URL of the thumbnail (JPEG only) for the video
      */
     val thumbUrl: String,
 
@@ -5610,7 +5796,7 @@ data class InlineQueryResultDocument(
     val inputMessageContent: InputMessageContent? = null,
 
     /**
-     *  URL of the thumbnail (jpeg only) for the file
+     *  URL of the thumbnail (JPEG only) for the file
      */
     val thumbUrl: String? = null,
 
@@ -7119,7 +7305,7 @@ data class PassportFile(
     val fileUniqueId: String,
 
     /**
-     *  File size
+     *  File size in bytes
      */
     val fileSize: Int,
 
@@ -7605,9 +7791,9 @@ class CallbackGame
 
 
 /**
- *  Use this method to set the score of the specified user in a game. On success, if the message was sent by the bot,
- *  returns the edited Message, otherwise returns True. Returns an error, if the new score is not greater than the
- *  user's current score in the chat and force is False.
+ *  Use this method to set the score of the specified user in a game message. On success, if the message is not an
+ *  inline message, the Message is returned, otherwise True is returned. Returns an error, if the new score is not
+ *  greater than the user's current score in the chat and force is False.
  */
 data class SetGameScoreRequest(
 
