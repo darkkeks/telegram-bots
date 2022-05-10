@@ -2,7 +2,7 @@
 # Default profile is dev
 spring.profiles.active: dev
 
-spring.data.mongodb.host: mongo
+spring.data.mongodb.host: mongo-hse-remind
 
 telegram:
   token: ${BOT_TOKEN}

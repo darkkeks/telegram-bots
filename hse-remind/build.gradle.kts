@@ -8,6 +8,10 @@ springBoot {
     mainClass.set("ru.darkkeks.telegram.hseremind.HseRemindAppKt")
 }
 
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
 dependencies {
     implementation(project(":core"))
 
