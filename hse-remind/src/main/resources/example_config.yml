@@ -1,75 +1,16 @@
 ---
 chats:
-  - # Название группы правил, пока не используется
-    name: "193 Общий"
-
-    # Куда отсылать уведомления, одно из
-    #   channel: 123123
-    #   group: 123123
-    #   me: true
-    target:
-      channel: -1001288233266
-
-    # Список правил. Правило -- это комбинация "откуда брать лекции" и "чем их фильтровать"
-    lecture_rules:
-      - # source -- откуда из расписания брать лекции
-        # Здесь, берутся лекции группы БПМИ193
-        # Кроме group, можно указать student: "Балюк"
-        source:
-          group: "БПМИ193"
-
-        # Все лекции перед уведомлением проходят через фильтр
-        # Фильтры очень гибкие, но возможно чуть сложны для понимания
-        # В примере ниже приходит уведомление о всех лекциях, кроме лекций по средам и англа
-        filter:
-          none_of:
-            - week_days:
-                - 3
-            - lecture_name: '.*Англ.*'
-
-  - name: "Лекции"
-    target:
-      channel: -1001459653369
-
-    # Брать видео из плейлистов ютаба
-    youtube_rules:
-      - source:
-          # хештег под видео
-          name: 'ДМ2'
-          # id плейлиста (можно скопировать из ссылки на плейлист)
-          playlist: 'PLEwK9wdS5g0rlJ8sZo5x0rJYRdl4XFeZt'
-      - source:
-          name: 'ДМ2'
-          playlist: 'PL1Uob8iPTHGRZB9F2yjqXhGp75g1ZJFk-'
-      - source:
-          name: 'ТВиМС'
-          playlist: 'PLEwK9wdS5g0rSOfuEG8wmghP682aEPPud'
-      - source:
-          name: 'МА2'
-          playlist: 'PLEwK9wdS5g0qV-430pfXzTawd6pI_VUgq'
-      - source:
-          name: 'АКОС'
-          playlist: 'PLEwK9wdS5g0qaFRRs8pcO3NT5W2IgPBfb'
-      - source:
-          name: 'АКОС'
-          playlist: 'PLckDP3jNUDU7GH2aC2lIAilmo8k2RyWxv'
-      - source:
-          name: 'ОМВ'
-          playlist: 'PLEwK9wdS5g0ouOxtCkrw9_niJ5IW9zm0G'
-      - source:
-          name: 'ОМВ'
-          # группа 1
-          playlist: 'PLEwK9wdS5g0oDs3nzKKdGVbErbqU944VB'
-      - source:
-          name: 'ОМВ'
-          # группа 2
-          playlist: 'PLEwK9wdS5g0pLVY8YXb7kRJLD26r1wQsR'
-      - source:
-          name: 'ОМВ'
-          # группа 3
-          playlist: 'PLEwK9wdS5g0qMOpvgu5WMMXyuQYCmqhQF'
-      - source:
-          name: 'ОМВ'
-          # группа 4
-          playlist: 'PLEwK9wdS5g0pu6sFaw5xCq1TmwxZtSEZC'      
+- name: "195 Общий"
+  target:
+    channel: -1001579713051
+  lecture_rules:
+  - source:
+      group: "БПМИ195"
+- name: "196 Общий"
+  target:
+    channel: -1001771166134
+  lecture_rules:
+  - source:
+      group: "БПМИ196"
 version: 1
+
