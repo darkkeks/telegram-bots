@@ -27,11 +27,12 @@ fun main(args: Array<String>) {
 }
 
 object EjudgeConstants {
-    private const val DEFAULT_YEAR = 2021
+    private const val DEFAULT_YEAR = 2022
 
     private val CONTEST_IDS_BY_YEAR = mapOf(
         2020 to (130..141).toSet(),
         2021 to (201..209).toSet() + setOf(2010, 2021),
+        2022 to (211..219).toSet() + setOf(2110),
     )
 
     fun getContestIds(year: Int?): Set<Int>? {
